@@ -115,33 +115,33 @@
             const names = ["あ"];
             let selectedCells = [];
 
-            generateTable();
+            // ページロード時にテーブルを生成
+generateTable();
 
-            function generateTable() {
-                // テーブルの初期化
-                table.innerHTML = '';
+function generateTable() {
+    // テーブルの初期化
+    table.innerHTML = '';
     
-                // 日付の行を生成
-                const dateRow = table.parentNode.querySelector('thead tr');
-                dateRow.innerHTML = ''; // 日付の行をクリア
-                const monthDays = new Date(new Date().getFullYear(), currentMonth, 0).getDate(); // 今月の日数
-                for (let i = 1; i <= monthDays; i++) {
-                    let th = document.createElement('th');
-                    th.innerText = `${months[currentMonth]} ${i}日`;
-                    dateRow.appendChild(th);
-                }
+    // 日付の行を生成
+    const dateRow = table.parentNode.querySelector('thead tr');
+    dateRow.innerHTML = ''; // 日付の行をクリア
+    const monthDays = new Date(new Date().getFullYear(), currentMonth, 0).getDate(); // 今月の日数
+    for (let i = 1; i <= monthDays; i++) {
+        let th = document.createElement('th');
+        th.innerText = `${months[currentMonth]} ${i}日`;
+        dateRow.appendChild(th);
+    }
 
-                // 氏名の欄を生成
-                names.forEach(name => {
-                    let row = table.insertRow();
-                    let cell = row.insertCell(0);
-                    cell.innerText = name;
-                    for (let i = 1; i <= monthDays; i++) {
-                        row.insertCell(i + 1);
-                    }
-                });
-            }
-
+    // 氏名の欄を生成
+    names.forEach(name => {
+        let row = table.insertRow();
+        let cell = row.insertCell(0);
+        cell.innerText = name;
+        for (let i = 1; i <= monthDays; i++) {
+            row.insertCell(1); // 1日のセルの位置からセルを挿入
+        }
+    });
+}
 
             const dateRow = table.parentNode.querySelector('thead tr');
             for (let i = 1; i <= 31; i++) {
