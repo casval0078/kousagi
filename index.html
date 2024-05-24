@@ -13,6 +13,7 @@
             <div class="buttons">
                 <button id="bulk-time-button">一括時刻入力</button>
                 <button id="bulk-absent-button">一括欠席</button>
+                <button id="bulk-clear-button">一括クリア</button> <!-- 一括クリアボタンを追加 -->
             </div>
             <div class="name-management">
                 <input type="text" id="name-input" placeholder="氏名を入力">
@@ -62,12 +63,13 @@
         document.addEventListener('DOMContentLoaded', (event) => {
             const bulkTimeButton = document.getElementById('bulk-time-button');
             const bulkAbsentButton = document.getElementById('bulk-absent-button');
+            const bulkClearButton = document.getElementById('bulk-clear-button'); // 一括クリアボタンを取得
             const addNameButton = document.getElementById('add-name-button');
             const removeNameButton = document.getElementById('remove-name-button');
             const nameInput = document.getElementById('name-input');
             const table = document.getElementById('attendance-table').getElementsByTagName('tbody')[0];
 
-            const names = ["初期値"];
+            const names = ["あ"];
             let selectedCells = []; // selectedCellsを定義
 
             function generateTable() {
@@ -105,7 +107,7 @@
 
             bulkTimeButton.addEventListener('click', () => {
                 const currentTime = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
-                selectedCells.forEach(cell => {
+                                selectedCells.forEach(cell => {
                     cell.innerText = currentTime;
                     saveData(cell.parentElement.cells[0].innerText, dateRow.cells[cell.cellIndex].innerText, currentTime);
                 });
@@ -116,6 +118,14 @@
                 selectedCells.forEach(cell => {
                     cell.innerText = '欠席';
                     saveData(cell.parentElement.cells[0].innerText, dateRow.cells[cell.cellIndex].innerText, '欠席');
+                });
+                clearSelection();
+            });
+
+            bulkClearButton.addEventListener('click', () => { // 一括クリアボタンのクリックイベントを追加
+                selectedCells.forEach(cell => {
+                    cell.innerText = '';
+                    saveData(cell.parentElement.cells[0].innerText, dateRow.cells[cell.cellIndex].innerText, '');
                 });
                 clearSelection();
             });
@@ -149,3 +159,5 @@
     </script>
 </body>
 </html>
+
+               
