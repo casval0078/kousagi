@@ -14,6 +14,11 @@
             display: flex;
             gap: 10px;
         }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
     </style>
 </head>
 <body>
@@ -24,11 +29,6 @@
                 <button id="bulk-time-button">時刻入力</button>
                 <button id="bulk-absent-button">欠席</button>
                 <button id="bulk-clear-button">クリア</button>
-            </div>
-            <div class="button-group">
-                <input type="text" id="name-input" placeholder="氏名を入力">
-                <button id="add-name-button">追加</button>
-                <button id="remove-name-button">削除</button>
             </div>
             <div class="month-links">
                 <a href="#" id="january-link">1月</a>
@@ -93,7 +93,7 @@
             const nameInput = document.getElementById('name-input');
             const table = document.getElementById('attendance-table').getElementsByTagName('tbody')[0];
 
-            const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            const months = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
             let currentMonth = 4; // 5月のインデックスは4（0-indexed）
 
             const names = ["あ"];
@@ -155,7 +155,7 @@
                     saveData(cell.parentElement.cells[0].innerText, dateRow.cells[cell.cellIndex].innerText, '');
                 });
                 clearSelection();
-                            });
+            });
 
             function clearSelection() {
                 selectedCells.forEach(cell => cell.style.backgroundColor = '');
@@ -166,7 +166,7 @@
                 currentMonth = monthIndex;
                 dateRow.innerHTML = ''; // 日付の行をクリア
 
-                for (let i = 1; i <= 31; i++) {
+                                for (let i = 1; i <= 31; i++) {
                     let th = document.createElement('th');
                     th.innerText = `${months[currentMonth]} ${i}日`;
                     dateRow.appendChild(th);
@@ -206,5 +206,3 @@
     </script>
 </body>
 </html>
-
-           
