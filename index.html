@@ -13,7 +13,7 @@
         }
         .button-group {
             display: flex;
-            gap: 10px;
+            gap: 5px; /* ボタン間の間隔を調整 */
             flex-wrap: wrap;
         }
         .month-links {
@@ -107,7 +107,7 @@
     <script type="module">
         // Import the functions you need from the SDKs you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
-        import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-database.js";
+        import { getDatabase, ref, set, get, child, onValue } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-database.js";
 
         // Your web app's Firebase configuration
         const firebaseConfig = {
@@ -129,6 +129,18 @@
             set(ref(db, 'attendance/' + name + '/' + date), value);
         }
 
+        // Function to load names from Firebase
+        function loadNames() {
+            const namesRef = ref(db, 'attendance');
+            onValue(namesRef, (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    const names = Object.keys(data);
+                    generateTable(names);
+                }
+            });
+        }
+
         // Script to handle table interactions
         document.addEventListener('DOMContentLoaded', (event) => {
             const bulkTimeButton = document.getElementById('bulk-time-button');
@@ -142,18 +154,16 @@
             const exportButton = document.getElementById('export-button');
 
             const months = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
-            let currentMonth = 4; // 5月のインデックスは4（0-indexed）
+            let currentMonth = 4; // 5月のインデックスは4（0-indexed
+                        const selectedCells = [];
 
-            const names = ["あ"];
-            let selectedCells = [];
+            // Load names from Firebase on page load
+            loadNames();
 
-            // ページロード時にテーブルを生成
-            generateTable();
-
-            function generateTable() {
-                // 日付の行をクリア
+            function generateTable(names) {
+                // Clear date row
                 dateRow.innerHTML = '';
-                const monthDays = new Date(new Date().getFullYear(), currentMonth + 1, 0).getDate(); // 今月の日数
+                const monthDays = new Date(new Date().getFullYear(), currentMonth + 1, 0).getDate(); // Number of days in current month
                 for (let i = 0; i <= monthDays; i++) {
                     let th = document.createElement('th');
                     if (i === 0) {
@@ -164,69 +174,22 @@
                     dateRow.appendChild(th);
                 }
 
-                // テーブルの初期化
+                // Clear table
                 table.innerHTML = '';
 
-                // 各氏名ごとに行を生成
+                // Generate rows for each name
                 names.forEach(name => {
                     let row = table.insertRow();
                     let nameCell = row.insertCell(0);
                     nameCell.innerText = name;
                     for (let i = 1; i <= monthDays; i++) {
                         let dateCell = row.insertCell(i);
-                        dateCell.innerText = ''; // 空のセルを挿入
+                        dateCell.innerText = ''; // Insert empty cell
                     }
                 });
             }
 
-            table.addEventListener('click', (e) => {
-                if (e.target.tagName === 'TD' && e.target.cellIndex > 0) {
-                    if (selectedCells.includes(e.target)) {
-                        e.target.style.backgroundColor = '';
-                        selectedCells = selectedCells.filter(cell => cell !== e.target);
-                    } else {
-                        e.target.style.backgroundColor = '#b0c4de';
-                        selectedCells.push(e.target);
-                    }
-                }
-            });
-
-            bulkTimeButton.addEventListener('click', () => {
-                const currentTime = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
-                selectedCells.forEach(cell => {
-                    cell.innerText = currentTime;
-                    saveData(cell.parentElement.cells[0].innerText, dateRow.cells[cell.cellIndex].innerText, currentTime);
-                });
-                clearSelection();
-            });
-
-            bulkAbsentButton.addEventListener('click', () => {
-                selectedCells.forEach(cell => {
-                    cell.innerText = '欠席';
-                    saveData(cell.parentElement.cells[0].innerText, dateRow.cells[cell.cellIndex].innerText, '欠席');
-                });
-                clearSelection();
-            });
-
-            bulkClearButton.addEventListener('click', () => {
-                selectedCells.forEach(cell => {
-                    cell.innerText = '';
-                    saveData(cell.parentElement.cells[0].innerText, dateRow.cells[cell.cellIndex].innerText, '');
-                });
-                clearSelection();
-            });
-
-            function clearSelection() {
-                selectedCells.forEach(cell => cell.style.backgroundColor = '');
-                selectedCells = [];
-            }
-
-            function updateMonth(monthIndex) {
-                currentMonth = monthIndex;
-                generateTable(); // テーブルを再生成
-            }
-
-            // 月のリンクをクリックしたときの処理
+            // Handle month link clicks
             const monthLinks = document.querySelectorAll('.month-links a');
             monthLinks.forEach((link, index) => {
                 link.addEventListener('click', (event) => {
@@ -235,11 +198,17 @@
                 });
             });
 
+            function updateMonth(monthIndex) {
+                currentMonth = monthIndex;
+                generateTable(); // Regenerate table
+            }
+
             addNameButton.addEventListener('click', () => {
                 const nameToAdd = nameInput.value.trim();
                 if (nameToAdd && !names.includes(nameToAdd)) {
                     names.push(nameToAdd);
-                    generateTable();
+                    set(ref(db, 'attendance/' + nameToAdd), ''); // Add empty data for the new name
+                    generateTable(names);
                     nameInput.value = '';
                 }
             });
@@ -250,7 +219,8 @@
                     const index = names.indexOf(nameToRemove);
                     if (index > -1) {
                         names.splice(index, 1);
-                        generateTable();
+                        removeData(nameToRemove); // Remove data for the removed name
+                        generateTable(names);
                         nameInput.value = '';
                     }
                 }
@@ -277,3 +247,4 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </body>
 </html>
+
