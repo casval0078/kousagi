@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -13,6 +13,8 @@
             <div class="buttons">
                 <button id="time-button">時刻入力</button>
                 <button id="absent-button">欠席</button>
+                <button id="bulk-time-button">一括時刻入力</button>
+                <button id="bulk-absent-button">一括欠席</button>
             </div>
             <div class="name-management">
                 <input type="text" id="name-input" placeholder="氏名を入力">
@@ -52,6 +54,25 @@
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
+        const bulkTimeButton = document.getElementById('bulk-time-button');
+        const bulkAbsentButton = document.getElementById('bulk-absent-button');
+
+        bulkTimeButton.addEventListener('click', () => {
+            const currentTime = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+            selectedCells.forEach(cell => {
+                cell.innerText = currentTime;
+                saveData(cell.parentElement.cells[0].innerText, dateRow.cells[cell.cellIndex].innerText, currentTime);
+            });
+            clearSelection();
+        });
+
+        bulkAbsentButton.addEventListener('click', () => {
+            selectedCells.forEach(cell => {
+                cell.innerText = '欠席';
+                saveData(cell.parentElement.cells[0].innerText, dateRow.cells[cell.cellIndex].innerText, '欠席');
+            });
+            clearSelection();
+        });
 
         // Functions to save data to Firebase
         function saveData(name, date, value) {
