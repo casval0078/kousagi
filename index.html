@@ -46,20 +46,20 @@
                 <button id="add-name-button">追加</button>
                 <button id="remove-name-button">削除</button>
             </div>
-            <div class="month-links">
-                <a href="#" id="january-link">1月</a>
-                <a href="#" id="february-link">2月</a>
-                <a href="#" id="march-link">3月</a>
-                <a href="#" id="april-link">4月</a>
-                <a href="#" id="may-link">5月</a>
-                <a href="#" id="june-link">6月</a>
-                <a href="#" id="july-link">7月</a>
-                <a href="#" id="august-link">8月</a>
-                <a href="#" id="september-link">9月</a>
-                <a href="#" id="october-link">10月</a>
-                <a href="#" id="november-link">11月</a>
-                <a href="#" id="december-link">12月</a>
-            </div>
+        </div>
+        <div class="month-links">
+            <a href="#" id="january-link">1月</a>
+            <a href="#" id="february-link">2月</a>
+            <a href="#" id="march-link">3月</a>
+            <a href="#" id="april-link">4月</a>
+            <a href="#" id="may-link">5月</a>
+            <a href="#" id="june-link">6月</a>
+            <a href="#" id="july-link">7月</a>
+            <a href="#" id="august-link">8月</a>
+            <a href="#" id="september-link">9月</a>
+            <a href="#" id="october-link">10月</a>
+            <a href="#" id="november-link">11月</a>
+            <a href="#" id="december-link">12月</a>
         </div>
         <table id="attendance-table">
             <thead>
@@ -182,7 +182,7 @@
                 currentMonth = monthIndex;
                 dateRow.innerHTML = ''; // 日付の行をクリア
 
-                                for (let i = 1; i <= 31; i++) {
+                for (let i = 1; i <= 31; i++) {
                     let th = document.createElement('th');
                     th.innerText = `${months[currentMonth]} ${i}日`;
                     dateRow.appendChild(th);
@@ -222,3 +222,4 @@
     </script>
 </body>
 </html>
+
