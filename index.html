@@ -30,6 +30,9 @@
             display: flex;
             gap: 10px;
         }
+        .export-button {
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -72,12 +75,15 @@
                 <!-- 名簿を動的に生成 -->
             </tbody>
         </table>
+        <button id="export-button" class="export-button">エクセルに出力</button>
     </div>
     <!-- Firebase SDK -->
     <script type="module">
         // Import the functions you need from the SDKs you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
         import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-database.js";
+        import { saveAs } from 'https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js';
+        import XLSX from 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
 
         // Your web app's Firebase configuration
         const firebaseConfig = {
@@ -109,6 +115,7 @@
             const nameInput = document.getElementById('name-input');
             const table = document.getElementById('attendance-table').getElementsByTagName('tbody')[0];
             const dateRow = table.parentNode.querySelector('thead tr');
+            const exportButton = document.getElementById('export-button');
 
             const months = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
             let currentMonth = 4; // 5月のインデックスは4（0-indexed）
@@ -223,6 +230,23 @@
                         nameInput.value = '';
                     }
                 }
+            });
+
+            exportButton.addEventListener('click', () => {
+                const wb = XLSX.utils.book_new();
+                const ws_data = [];
+                const rows = table.parentNode.querySelectorAll('tr');
+
+                rows.forEach(row => {
+                    const cells = row.querySelectorAll('th, td');
+                    const row_data = [];
+                    cells.forEach(cell => row_data.push(cell.innerText));
+                    ws_data.push(row_data);
+                });
+
+                const ws = XLSX.utils.aoa_to_sheet(ws_data);
+                XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+                XLSX.writeFile(wb, 'attendance.xlsx');
             });
         });
     </script>
