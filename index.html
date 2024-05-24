@@ -53,9 +53,13 @@
             border: 1px solid #ddd;
             padding: 8px;
             text-align: center;
+            cursor: pointer; /* カーソルをポインターに変更 */
         }
         th {
             background-color: #f2f2f2;
+        }
+        .selected {
+            background-color: #b0c4de; /* 選択されたセルの背景色 */
         }
     </style>
 </head>
@@ -162,7 +166,7 @@
             let currentMonth = 4; // 5月のインデックスは4（0-indexed
             const selectedCells = [];
             // この部分で必要な変数を定義する
-            const names = []; // 名前の配列を初期化
+            let names = []; // 名前の配列を初期化
 
             function generateTable(names) {
                 // Clear date row
@@ -210,7 +214,7 @@
                     onValue(namesRef, (snapshot) => {
                         const data = snapshot.val();
                         if (data) {
-                            const names = Object.keys(data);
+                            names = Object.keys(data);
                             generateTable(names);
                         }
                     });
@@ -255,9 +259,56 @@
                 XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
                 XLSX.writeFile(wb, 'attendance.xlsx');
             });
+
+            function removeData(name) {
+                // Remove data for the specified name from Firebase
+                set(ref(db, 'attendance/' + name), null);
+            }
+
+            table.addEventListener('click', (e) => {
+                if (e.target.tagName === 'TD' && e.target.cellIndex > 0) {
+                    if (selectedCells.includes(e.target)) {
+                        e.target.classList.remove('selected'); // Remove selected class
+                        selectedCells = selectedCells.filter(cell => cell !== e.target);
+                    } else {
+                        e.target.classList.add('selected'); // Add selected class
+                        selectedCells.push(e.target);
+                    }
+                }
+            });
+
+            bulkTimeButton.addEventListener('click', () => {
+                const currentTime = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+                                selectedCells.forEach(cell => {
+                    if (cell.contentEditable !== "true") {
+                        cell.innerText = currentTime;
+                        saveData(cell.parentNode.cells[0].innerText, `${months[currentMonth]} ${cell.cellIndex}日`, currentTime);
+                    }
+                });
+            });
+
+            bulkAbsentButton.addEventListener('click', () => {
+                selectedCells.forEach(cell => {
+                    if (cell.contentEditable !== "true") {
+                        cell.innerText = '欠席';
+                        saveData(cell.parentNode.cells[0].innerText, `${months[currentMonth]} ${cell.cellIndex}日`, '欠席');
+                    }
+                });
+            });
+
+            bulkClearButton.addEventListener('click', () => {
+                selectedCells.forEach(cell => {
+                    if (cell.contentEditable !== "true") {
+                        cell.innerText = '';
+                        saveData(cell.parentNode.cells[0].innerText, `${months[currentMonth]} ${cell.cellIndex}日`, '');
+                    }
+                });
+            });
         });
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </body>
 </html>
+
+               
 
