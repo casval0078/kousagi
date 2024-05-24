@@ -153,6 +153,11 @@
             const dateRow = table.parentNode.querySelector('thead tr');
             const exportButton = document.getElementById('export-button');
 
+            function updateMonth(monthIndex) {
+                currentMonth = monthIndex;
+                generateTable(names); // Regenerate table
+            }
+
             const months = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
             let currentMonth = 4; // 5月のインデックスは4（0-indexed
             const selectedCells = [];
