@@ -1,4 +1,4 @@
-    <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -54,25 +54,6 @@
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        const bulkTimeButton = document.getElementById('bulk-time-button');
-        const bulkAbsentButton = document.getElementById('bulk-absent-button');
-
-        bulkTimeButton.addEventListener('click', () => {
-            const currentTime = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
-            selectedCells.forEach(cell => {
-                cell.innerText = currentTime;
-                saveData(cell.parentElement.cells[0].innerText, dateRow.cells[cell.cellIndex].innerText, currentTime);
-            });
-            clearSelection();
-        });
-
-        bulkAbsentButton.addEventListener('click', () => {
-            selectedCells.forEach(cell => {
-                cell.innerText = '欠席';
-                saveData(cell.parentElement.cells[0].innerText, dateRow.cells[cell.cellIndex].innerText, '欠席');
-            });
-            clearSelection();
-        });
 
         // Functions to save data to Firebase
         function saveData(name, date, value) {
@@ -83,12 +64,15 @@
         document.addEventListener('DOMContentLoaded', (event) => {
             const timeButton = document.getElementById('time-button');
             const absentButton = document.getElementById('absent-button');
+            const bulkTimeButton = document.getElementById('bulk-time-button');
+            const bulkAbsentButton = document.getElementById('bulk-absent-button');
             const addNameButton = document.getElementById('add-name-button');
             const removeNameButton = document.getElementById('remove-name-button');
             const nameInput = document.getElementById('name-input');
             const table = document.getElementById('attendance-table').getElementsByTagName('tbody')[0];
 
             const names = ["あ"];
+            let selectedCells = []; // selectedCellsを定義
 
             function generateTable() {
                 table.innerHTML = '';
@@ -110,8 +94,6 @@
                 th.innerText = `5月${i}日`;
                 dateRow.appendChild(th);
             }
-
-            let selectedCells = [];
 
             table.addEventListener('click', (e) => {
                 if (e.target.tagName === 'TD' && e.target.cellIndex > 0) {
@@ -142,6 +124,23 @@
                 clearSelection();
             });
 
+            bulkTimeButton.addEventListener('click', () => {
+                const currentTime = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+                selectedCells.forEach(cell => {
+                    cell.innerText = currentTime;
+                    saveData(cell.parentElement.cells[0].innerText, dateRow.cells[cell.cellIndex].innerText, currentTime);
+                });
+                clearSelection();
+            });
+
+            bulkAbsentButton.addEventListener('click', () => {
+                selectedCells.forEach(cell => {
+                    cell.innerText = '欠席';
+                    saveData(cell.parentElement.cells[0].innerText, dateRow.cells[cell.cellIndex].innerText, '欠席');
+                });
+                clearSelection();
+            });
+
             function clearSelection() {
                 selectedCells.forEach(cell => cell.style.backgroundColor = '');
                 selectedCells = [];
@@ -149,7 +148,7 @@
 
             addNameButton.addEventListener('click', () => {
                 const newName = nameInput.value.trim();
-                                if (newName && !names.includes(newName)) {
+                if (newName && !names.includes(newName)) {
                     names.push(newName);
                     generateTable();
                     nameInput.value = '';
