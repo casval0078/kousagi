@@ -116,6 +116,7 @@
             let selectedCells = [];
 
             // ページロード時にテーブルを生成
+// ページロード時にテーブルを生成
 generateTable();
 
 function generateTable() {
@@ -125,7 +126,7 @@ function generateTable() {
     // 日付の行を生成
     const dateRow = table.parentNode.querySelector('thead tr');
     dateRow.innerHTML = ''; // 日付の行をクリア
-    const monthDays = new Date(new Date().getFullYear(), currentMonth, 0).getDate(); // 今月の日数
+    const monthDays = new Date(new Date().getFullYear(), currentMonth + 1, 0).getDate(); // 今月の日数
     for (let i = 1; i <= monthDays; i++) {
         let th = document.createElement('th');
         th.innerText = `${months[currentMonth]} ${i}日`;
@@ -133,6 +134,9 @@ function generateTable() {
     }
 
     // 氏名の欄を生成
+    let headerRow = table.insertRow();
+    let headerCell = headerRow.insertCell(0);
+    headerCell.innerText = '氏名';
     names.forEach(name => {
         let row = table.insertRow();
         let cell = row.insertCell(0);
@@ -142,6 +146,7 @@ function generateTable() {
         }
     });
 }
+
 
             const dateRow = table.parentNode.querySelector('thead tr');
             for (let i = 1; i <= 31; i++) {
