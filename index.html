@@ -155,10 +155,9 @@
 
             const months = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
             let currentMonth = 4; // 5月のインデックスは4（0-indexed
-                        const selectedCells = [];
-
-            // Load names from Firebase on page load
-            loadNames();
+            const selectedCells = [];
+            // この部分で必要な変数を定義する
+            const names = []; // 名前の配列を初期化
 
             function generateTable(names) {
                 // Clear date row
@@ -198,10 +197,19 @@
                 });
             });
 
-            function updateMonth(monthIndex) {
-                currentMonth = monthIndex;
-                generateTable(); // Regenerate table
-            }
+             // 名前をFirebaseから読み込む
+                loadNames();
+
+                function loadNames() {
+                    const namesRef = ref(db, 'attendance');
+                    onValue(namesRef, (snapshot) => {
+                        const data = snapshot.val();
+                        if (data) {
+                            const names = Object.keys(data);
+                            generateTable(names);
+                        }
+                    });
+                }
 
             addNameButton.addEventListener('click', () => {
                 const nameToAdd = nameInput.value.trim();
