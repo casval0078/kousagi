@@ -115,17 +115,12 @@
             const names = ["あ"];
             let selectedCells = [];
 
-            function generateTable() {
-                table.innerHTML = '';
-                names.forEach(name => {
-                    let row = table.insertRow();
-                    let cell = row.insertCell(0);
-                    cell.innerText = name;
-                    for (let i = 0; i < 31; i++) {
-                        row.insertCell(i + 1);
-                    }
-                });
+            generateTable();
 
+            function generateTable() {
+                // テーブルの初期化
+                table.innerHTML = '';
+    
                 // 日付の行を生成
                 const dateRow = table.parentNode.querySelector('thead tr');
                 dateRow.innerHTML = ''; // 日付の行をクリア
@@ -134,9 +129,18 @@
                     th.innerText = `${months[currentMonth]} ${i}日`;
                     dateRow.appendChild(th);
                 }
+
+                // 氏名の欄を生成
+                names.forEach(name => {
+                    let row = table.insertRow();
+                    let cell = row.insertCell(0);
+                    cell.innerText = name;
+                    for (let i = 0; i < 31; i++) {
+                        row.insertCell(i + 1);
+                    }
+                });
             }
 
-            generateTable();
 
             const dateRow = table.parentNode.querySelector('thead tr');
             for (let i = 1; i <= 31; i++) {
