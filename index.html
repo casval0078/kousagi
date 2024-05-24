@@ -10,6 +10,10 @@
             display: flex;
             gap: 10px;
         }
+        .month-links {
+            display: flex;
+            gap: 10px;
+        }
     </style>
 </head>
 <body>
@@ -21,10 +25,24 @@
                 <button id="bulk-absent-button">欠席</button>
                 <button id="bulk-clear-button">クリア</button>
             </div>
-            <div class="button-group"> <!-- ボタンを横に並べるための追加 -->
+            <div class="button-group">
                 <input type="text" id="name-input" placeholder="氏名を入力">
                 <button id="add-name-button">追加</button>
                 <button id="remove-name-button">削除</button>
+            </div>
+            <div class="month-links">
+                <a href="#" id="january-link">1月</a>
+                <a href="#" id="february-link">2月</a>
+                <a href="#" id="march-link">3月</a>
+                <a href="#" id="april-link">4月</a>
+                <a href="#" id="may-link">5月</a>
+                <a href="#" id="june-link">6月</a>
+                <a href="#" id="july-link">7月</a>
+                <a href="#" id="august-link">8月</a>
+                <a href="#" id="september-link">9月</a>
+                <a href="#" id="october-link">10月</a>
+                <a href="#" id="november-link">11月</a>
+                <a href="#" id="december-link">12月</a>
             </div>
         </div>
         <table id="attendance-table">
@@ -75,6 +93,9 @@
             const nameInput = document.getElementById('name-input');
             const table = document.getElementById('attendance-table').getElementsByTagName('tbody')[0];
 
+            const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            let currentMonth = 4; // 5月のインデックスは4（0-indexed）
+
             const names = ["あ"];
             let selectedCells = [];
 
@@ -95,7 +116,7 @@
             const dateRow = table.parentNode.querySelector('thead tr');
             for (let i = 1; i <= 31; i++) {
                 let th = document.createElement('th');
-                th.innerText = `5月${i}日`;
+                th.innerText = `${months[currentMonth]} ${i}日`;
                 dateRow.appendChild(th);
             }
 
@@ -134,12 +155,32 @@
                     saveData(cell.parentElement.cells[0].innerText, dateRow.cells[cell.cellIndex].innerText, '');
                 });
                 clearSelection();
-            });
+                            });
 
             function clearSelection() {
                 selectedCells.forEach(cell => cell.style.backgroundColor = '');
                 selectedCells = [];
             }
+
+            function updateMonth(monthIndex) {
+                currentMonth = monthIndex;
+                dateRow.innerHTML = ''; // 日付の行をクリア
+
+                for (let i = 1; i <= 31; i++) {
+                    let th = document.createElement('th');
+                    th.innerText = `${months[currentMonth]} ${i}日`;
+                    dateRow.appendChild(th);
+                }
+            }
+
+            // 月のリンクをクリックしたときの処理
+            const monthLinks = document.querySelectorAll('.month-links a');
+            monthLinks.forEach((link, index) => {
+                link.addEventListener('click', (event) => {
+                    event.preventDefault(); // ページ遷移を防ぐ
+                    updateMonth(index);
+                });
+            });
 
             addNameButton.addEventListener('click', () => {
                 const newName = nameInput.value.trim();
@@ -165,3 +206,5 @@
     </script>
 </body>
 </html>
+
+           
