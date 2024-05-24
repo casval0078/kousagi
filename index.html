@@ -125,6 +125,15 @@
                         row.insertCell(i + 1);
                     }
                 });
+
+                // 日付の行を生成
+                const dateRow = table.parentNode.querySelector('thead tr');
+                dateRow.innerHTML = ''; // 日付の行をクリア
+                for (let i = 1; i <= 31; i++) {
+                    let th = document.createElement('th');
+                    th.innerText = `${months[currentMonth]} ${i}日`;
+                    dateRow.appendChild(th);
+                }
             }
 
             generateTable();
