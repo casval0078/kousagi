@@ -108,6 +108,7 @@
             const removeNameButton = document.getElementById('remove-name-button');
             const nameInput = document.getElementById('name-input');
             const table = document.getElementById('attendance-table').getElementsByTagName('tbody')[0];
+            const dateRow = table.parentNode.querySelector('thead tr');
 
             const months = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
             let currentMonth = 4; // 5月のインデックスは4（0-indexed）
@@ -116,42 +117,35 @@
             let selectedCells = [];
 
             // ページロード時にテーブルを生成
-generateTable();
+            generateTable();
 
-function generateTable() {
-    // テーブルの初期化
-    table.innerHTML = '';
-    
-    // 日付の行を生成
-    const dateRow = table.parentNode.querySelector('thead tr');
-    dateRow.innerHTML = ''; // 日付の行をクリア
-    const monthDays = new Date(new Date().getFullYear(), currentMonth + 1, 0).getDate(); // 今月の日数
-    for (let i = 0; i <= monthDays; i++) {
-        let th = document.createElement('th');
-        if (i === 0) {
-            th.innerText = '氏名';
-        } else {
-            th.innerText = `${i}日`;
-        }
-        dateRow.appendChild(th);
-    }
+            function generateTable() {
+                // 日付の行をクリア
+                dateRow.innerHTML = '';
+                const monthDays = new Date(new Date().getFullYear(), currentMonth + 1, 0).getDate(); // 今月の日数
+                for (let i = 0; i <= monthDays; i++) {
+                    let th = document.createElement('th');
+                    if (i === 0) {
+                        th.innerText = '氏名';
+                    } else {
+                        th.innerText = `${i}日`;
+                    }
+                    dateRow.appendChild(th);
+                }
 
-    // 各氏名ごとに行を生成
-    names.forEach(name => {
-        let row = table.insertRow();
-        let nameCell = row.insertCell(0);
-        nameCell.innerText = name;
-        for (let i = 1; i <= monthDays; i++) {
-            let dateCell = row.insertCell(i);
-            dateCell.innerText = ''; // 空のセルを挿入
-        }
-    });
-}
-            const dateRow = table.parentNode.querySelector('thead tr');
-            for (let i = 1; i <= 31; i++) {
-                let th = document.createElement('th');
-                th.innerText = `${months[currentMonth]} ${i}日`;
-                dateRow.appendChild(th);
+                // テーブルの初期化
+                table.innerHTML = '';
+
+                // 各氏名ごとに行を生成
+                names.forEach(name => {
+                    let row = table.insertRow();
+                    let nameCell = row.insertCell(0);
+                    nameCell.innerText = name;
+                    for (let i = 1; i <= monthDays; i++) {
+                        let dateCell = row.insertCell(i);
+                        dateCell.innerText = ''; // 空のセルを挿入
+                    }
+                });
             }
 
             table.addEventListener('click', (e) => {
@@ -198,13 +192,7 @@ function generateTable() {
 
             function updateMonth(monthIndex) {
                 currentMonth = monthIndex;
-                dateRow.innerHTML = ''; // 日付の行をクリア
-
-                for (let i = 1; i <= 31; i++) {
-                    let th = document.createElement('th');
-                    th.innerText = `${months[currentMonth]} ${i}日`;
-                    dateRow.appendChild(th);
-                }
+                generateTable(); // テーブルを再生成
             }
 
             // 月のリンクをクリックしたときの処理
@@ -240,4 +228,3 @@ function generateTable() {
     </script>
 </body>
 </html>
-
