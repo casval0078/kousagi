@@ -6,9 +6,15 @@
     <title>帰宅時間記録</title>
     <link rel="stylesheet" href="styles.css">
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
         .button-group {
             display: flex;
             gap: 10px;
+            flex-wrap: wrap;
         }
         .month-links {
             display: flex;
@@ -23,6 +29,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            padding: 20px;
         }
         .name-management {
             margin-top: 20px;
@@ -32,6 +39,23 @@
         }
         .export-button {
             margin-top: 20px;
+        }
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
         }
     </style>
 </head>
@@ -64,17 +88,19 @@
             <a href="#" id="november-link">11月</a>
             <a href="#" id="december-link">12月</a>
         </div>
-        <table id="attendance-table">
-            <thead>
-                <tr>
-                    <th>氏名</th>
-                    <!-- 日付を動的に生成 -->
-                </tr>
-            </thead>
-            <tbody>
-                <!-- 名簿を動的に生成 -->
-            </tbody>
-        </table>
+        <div class="table-container">
+            <table id="attendance-table">
+                <thead>
+                    <tr>
+                        <th>氏名</th>
+                        <!-- 日付を動的に生成 -->
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- 名簿を動的に生成 -->
+                </tbody>
+            </table>
+        </div>
         <button id="export-button" class="export-button">エクセルに出力</button>
     </div>
     <!-- Firebase SDK -->
@@ -204,15 +230,15 @@
             const monthLinks = document.querySelectorAll('.month-links a');
             monthLinks.forEach((link, index) => {
                 link.addEventListener('click', (event) => {
-                    event.preventDefault(); // ページ遷移を防ぐ
+                    event.preventDefault();
                     updateMonth(index);
                 });
             });
 
             addNameButton.addEventListener('click', () => {
-                const newName = nameInput.value.trim();
-                if (newName && !names.includes(newName)) {
-                    names.push(newName);
+                const nameToAdd = nameInput.value.trim();
+                if (nameToAdd && !names.includes(nameToAdd)) {
+                    names.push(nameToAdd);
                     generateTable();
                     nameInput.value = '';
                 }
