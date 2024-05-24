@@ -140,16 +140,14 @@ function generateTable() {
     // 各氏名ごとに行を生成
     names.forEach(name => {
         let row = table.insertRow();
-        let cell = row.insertCell(0);
-        cell.innerText = name;
+        let nameCell = row.insertCell(0);
+        nameCell.innerText = name;
         for (let i = 1; i <= monthDays; i++) {
-            row.insertCell(i); // 1日からセルを挿入
+            let dateCell = row.insertCell(i);
+            dateCell.innerText = ''; // 空のセルを挿入
         }
     });
 }
-
-
-
             const dateRow = table.parentNode.querySelector('thead tr');
             for (let i = 1; i <= 31; i++) {
                 let th = document.createElement('th');
