@@ -116,7 +116,6 @@
             let selectedCells = [];
 
             // ページロード時にテーブルを生成
-// ページロード時にテーブルを生成
 generateTable();
 
 function generateTable() {
@@ -133,19 +132,22 @@ function generateTable() {
         dateRow.appendChild(th);
     }
 
-    // 氏名の欄を生成
+    // 氏名のセルを生成
     let headerRow = table.insertRow();
     let headerCell = headerRow.insertCell(0);
     headerCell.innerText = '氏名';
+
+    // 各氏名ごとに行を生成
     names.forEach(name => {
         let row = table.insertRow();
         let cell = row.insertCell(0);
         cell.innerText = name;
         for (let i = 1; i <= monthDays; i++) {
-            row.insertCell(1); // 1日のセルの位置からセルを挿入
+            row.insertCell(i); // 1日からセルを挿入
         }
     });
 }
+
 
 
             const dateRow = table.parentNode.querySelector('thead tr');
