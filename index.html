@@ -5,26 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>帰宅時間記録</title>
     <link rel="stylesheet" href="styles.css">
-    <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
     <script src="script.js" defer></script>
 </head>
 <body>
     <h1>帰宅時間記録</h1>
-    <table id="attendance-table">
-        <thead>
-            <tr>
-                <th>氏名</th>
-                <!-- 日付を動的に生成 -->
-            </tr>
-        </thead>
-        <tbody>
-            <!-- 名簿を動的に生成 -->
-        </tbody>
-    </table>
-    <button id="time-button">時刻入力</button>
-    <button id="absent-button">欠席</button>
+    <div class="container">
+        <div class="controls">
+            <div class="buttons">
+                <button id="time-button">時刻入力</button>
+                <button id="absent-button">欠席</button>
+            </div>
+            <div class="name-management">
+                <input type="text" id="name-input" placeholder="氏名を入力">
+                <button id="add-name-button">追加</button>
+                <button id="remove-name-button">削除</button>
+            </div>
+        </div>
+        <table id="attendance-table">
+            <thead>
+                <tr>
+                    <th>氏名</th>
+                    <!-- 日付を動的に生成 -->
+                </tr>
+            </thead>
+            <tbody>
+                <!-- 名簿を動的に生成 -->
+            </tbody>
+        </table>
+    </div>
     <script>
         // Firebaseの設定
         const firebaseConfig = {
