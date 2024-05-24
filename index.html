@@ -130,7 +130,15 @@
 
         // Functions to save data to Firebase
         function saveData(name, date, value) {
-            set(ref(db, 'attendance/' + name + '/' + date), value);
+            set(ref(db, `attendance/${name}/${date}`), value)
+                .then(() => console.log("Data saved successfully"))
+                .catch((error) => console.error("Error saving data:", error));
+        }
+
+        function removeData(name) {
+            remove(ref(db, `attendance/${name}`))
+                .then(() => console.log("Data removed successfully"))
+                .catch((error) => console.error("Error removing data:", error));
         }
 
         // Function to load names from Firebase
