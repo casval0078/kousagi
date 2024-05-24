@@ -124,7 +124,8 @@
                 // 日付の行を生成
                 const dateRow = table.parentNode.querySelector('thead tr');
                 dateRow.innerHTML = ''; // 日付の行をクリア
-                for (let i = 1; i <= 31; i++) {
+                const monthDays = new Date(new Date().getFullYear(), currentMonth, 0).getDate(); // 今月の日数
+                for (let i = 1; i <= monthDays; i++) {
                     let th = document.createElement('th');
                     th.innerText = `${months[currentMonth]} ${i}日`;
                     dateRow.appendChild(th);
@@ -135,7 +136,7 @@
                     let row = table.insertRow();
                     let cell = row.insertCell(0);
                     cell.innerText = name;
-                    for (let i = 0; i < 31; i++) {
+                    for (let i = 1; i <= monthDays; i++) {
                         row.insertCell(i + 1);
                     }
                 });
