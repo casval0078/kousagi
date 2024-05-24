@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     const nameInput = document.getElementById('name-input');
     const table = document.getElementById('attendance-table').getElementsByTagName('tbody')[0];
 
-    const names = ["山崎 陸人", "谷口 明太郎", "栗木 太郎", "柳原 順花", "大西 華蓮", "岡田 弥生", "木村 舞子", "大澤 拓真", "鈴依 実", "清水 茉優", "徳田 連", "小塚 楓希", "柏崎 尚美", "一輪 京本太郎", "磯本 涼", "三浦 美咲", "須賀 尚介", "加藤 達太", "永瀬 愛菜", "双葉 陽", "竹田 菜華", "石原 血", "島 ののか", "体 千鶴", "笹尾 葵士", "見徳 蓮"];
+    const names = ["あ"];
 
     function generateTable() {
         table.innerHTML = '';
