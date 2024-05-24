@@ -111,7 +111,7 @@
     <script type="module">
         // Import the functions you need from the SDKs you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
-        import { getDatabase, ref, set, get, child, onValue } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-database.js";
+        import { getDatabase, ref, set, get, child, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-database.js";
 
         // Your web app's Firebase configuration
         const firebaseConfig = {
@@ -147,7 +147,7 @@
             onValue(namesRef, (snapshot) => {
                 const data = snapshot.val();
                 if (data) {
-                    const names = Object.keys(data);
+                    names = Object.keys(data);
                     generateTable(names);
                 }
             });
@@ -171,152 +171,147 @@
             }
 
             const months = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
-            let currentMonth = 4; // 5月のインデックスは4（0-indexed
-            const selectedCells = [];
-            // この部分で必要な変数を定義する
+            let currentMonth = 4; // 5月のインデックスは4（0-indexed）
             let names = []; // 名前の配列を初期化
 
-            function generateTable(names) {
-                // Clear date row
-                dateRow.innerHTML = '';
-                const monthDays = new Date(new Date().getFullYear(), currentMonth + 1, 0).getDate(); // Number of days in current month
-                for (let i = 0; i <= monthDays; i++) {
-                    let th = document.createElement('th');
-                    if (i === 0) {
-                        th.innerText = '氏名';
-                    } else {
-                        th.innerText = `${months[currentMonth]} ${i}日`;
-                    }
-                    dateRow.appendChild(th);
+                    function generateTable(names) {
+            // Clear date row
+            dateRow.innerHTML = '';
+            const monthDays = new Date(new Date().getFullYear(), currentMonth + 1, 0).getDate(); // Number of days in current month
+            for (let i = 0; i <= monthDays; i++) {
+                let th = document.createElement('th');
+                if (i === 0) {
+                    th.innerText = '氏名';
+                } else {
+                    th.innerText = `${months[currentMonth]} ${i}日`;
                 }
-
-                // Clear table
-                table.innerHTML = '';
-
-                // Generate rows for each name
-                names.forEach(name => {
-                    let row = table.insertRow();
-                    let nameCell = row.insertCell(0);
-                    nameCell.innerText = name;
-                    for (let i = 1; i <= monthDays; i++) {
-                        let dateCell = row.insertCell(i);
-                        dateCell.innerText = ''; // Insert empty cell
-                    }
-                });
+                dateRow.appendChild(th);
             }
 
-            // Handle month link clicks
-            const monthLinks = document.querySelectorAll('.month-links a');
-            monthLinks.forEach((link, index) => {
-                link.addEventListener('click', (event) => {
-                    event.preventDefault();
-                    updateMonth(index);
-                });
-            });
+            // Clear table
+            table.innerHTML = '';
 
-             // 名前をFirebaseから読み込む
-                loadNames();
-
-                function loadNames() {
-                    const namesRef = ref(db, 'attendance');
-                    onValue(namesRef, (snapshot) => {
-                        const data = snapshot.val();
-                        if (data) {
-                            names = Object.keys(data);
-                            generateTable(names);
-                        }
-                    });
+            // Generate rows for each name
+            names.forEach(name => {
+                let row = table.insertRow();
+                let nameCell = row.insertCell(0);
+                nameCell.innerText = name;
+                for (let i = 1; i <= monthDays; i++) {
+                    let dateCell = row.insertCell(i);
+                    dateCell.innerText = ''; // Insert empty cell
                 }
+            });
+        }
 
-            addNameButton.addEventListener('click', () => {
-                const nameToAdd = nameInput.value.trim();
-                if (nameToAdd && !names.includes(nameToAdd)) {
-                    names.push(nameToAdd);
-                    set(ref(db, 'attendance/' + nameToAdd), ''); // Add empty data for the new name
+        // Handle month link clicks
+        const monthLinks = document.querySelectorAll('.month-links a');
+        monthLinks.forEach((link, index) => {
+            link.addEventListener('click', (event) => {
+                event.preventDefault();
+                updateMonth(index);
+            });
+        });
+
+        // 名前をFirebaseから読み込む
+        loadNames();
+
+        function loadNames() {
+            const namesRef = ref(db, 'attendance');
+            onValue(namesRef, (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    names = Object.keys(data);
+                    generateTable(names);
+                }
+            });
+        }
+
+        addNameButton.addEventListener('click', () => {
+            const nameToAdd = nameInput.value.trim();
+            if (nameToAdd && !names.includes(nameToAdd)) {
+                names.push(nameToAdd);
+                set(ref(db, 'attendance/' + nameToAdd), ''); // Add empty data for the new name
+                generateTable(names);
+                nameInput.value = '';
+            }
+        });
+
+        removeNameButton.addEventListener('click', () => {
+            const nameToRemove = nameInput.value.trim();
+            if (names.includes(nameToRemove)) {
+                const index = names.indexOf(nameToRemove);
+                if (index > -1) {
+                    names.splice(index, 1);
+                    removeData(nameToRemove); // Remove data for the removed name
                     generateTable(names);
                     nameInput.value = '';
                 }
-            });
-
-            removeNameButton.addEventListener('click', () => {
-                const nameToRemove = nameInput.value.trim();
-                if (names.includes(nameToRemove)) {
-                    const index = names.indexOf(nameToRemove);
-                    if (index > -1) {
-                        names.splice(index, 1);
-                        removeData(nameToRemove); // Remove data for the removed name
-                        generateTable(names);
-                        nameInput.value = '';
-                    }
-                }
-            });
-
-            exportButton.addEventListener('click', () => {
-                const wb = XLSX.utils.book_new();
-                const ws_data = [];
-                const rows = table.parentNode.querySelectorAll('tr');
-
-                rows.forEach(row => {
-                    const cells = row.querySelectorAll('th, td');
-                    const row_data = [];
-                    cells.forEach(cell => row_data.push(cell.innerText));
-                    ws_data.push(row_data);
-                });
-
-                const ws = XLSX.utils.aoa_to_sheet(ws_data);
-                XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
-                XLSX.writeFile(wb, 'attendance.xlsx');
-            });
-
-            function removeData(name) {
-                // Remove data for the specified name from Firebase
-                set(ref(db, 'attendance/' + name), null);
             }
+        });
 
-            table.addEventListener('click', (e) => {
-                if (e.target.tagName === 'TD' && e.target.cellIndex > 0) {
-                    if (selectedCells.includes(e.target)) {
-                        e.target.classList.remove('selected'); // Remove selected class
-                        selectedCells = selectedCells.filter(cell => cell !== e.target);
-                    } else {
-                        e.target.classList.add('selected'); // Add selected class
-                        selectedCells.push(e.target);
-                    }
+        exportButton.addEventListener('click', () => {
+            const wb = XLSX.utils.book_new();
+            const ws_data = [];
+            const rows = table.parentNode.querySelectorAll('tr');
+
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('th, td');
+                const row_data = [];
+                cells.forEach(cell => row_data.push(cell.innerText));
+                ws_data.push(row_data);
+            });
+
+            const ws = XLSX.utils.aoa_to_sheet(ws_data);
+            XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+            XLSX.writeFile(wb, 'attendance.xlsx');
+        });
+
+        function removeData(name) {
+            // Remove data for the specified name from Firebase
+            remove(ref(db, 'attendance/' + name));
+        }
+
+        table.addEventListener('click', (e) => {
+            if (e.target.tagName === 'TD' && e.target.cellIndex > 0) {
+                if (selectedCells.includes(e.target)) {
+                    e.target.classList.remove('selected'); // Remove selected class
+                    selectedCells = selectedCells.filter(cell => cell !== e.target);
+                } else {
+                    e.target.classList.add('selected'); // Add selected class
+                    selectedCells.push(e.target);
                 }
-            });
+            }
+        });
 
-            bulkTimeButton.addEventListener('click', () => {
-                const currentTime = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
-                                selectedCells.forEach(cell => {
-                    if (cell.contentEditable !== "true") {
-                        cell.innerText = currentTime;
-                        saveData(cell.parentNode.cells[0].innerText, `${months[currentMonth]} ${cell.cellIndex}日`, currentTime);
-                    }
-                });
-            });
-
-            bulkAbsentButton.addEventListener('click', () => {
-                selectedCells.forEach(cell => {
-                    if (cell.contentEditable !== "true") {
-                        cell.innerText = '欠席';
-                        saveData(cell.parentNode.cells[0].innerText, `${months[currentMonth]} ${cell.cellIndex}日`, '欠席');
-                    }
-                });
-            });
-
-            bulkClearButton.addEventListener('click', () => {
-                selectedCells.forEach(cell => {
-                    if (cell.contentEditable !== "true") {
-                        cell.innerText = '';
-                        saveData(cell.parentNode.cells[0].innerText, `${months[currentMonth]} ${cell.cellIndex}日`, '');
-                    }
-                });
+        bulkTimeButton.addEventListener('click', () => {
+            const currentTime = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+            selectedCells.forEach(cell => {
+                if (cell.contentEditable !== "true") {
+                    cell.innerText = currentTime;
+                    saveData(cell.parentNode.cells[0].innerText, `${months[currentMonth]} ${cell.cellIndex}日`, currentTime);
+                }
             });
         });
-    </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+        bulkAbsentButton.addEventListener('click', () => {
+            selectedCells.forEach(cell => {
+                if (cell.contentEditable !== "true") {
+                    cell.innerText = '欠席';
+                    saveData(cell.parentNode.cells[0].innerText, `${months[currentMonth]} ${cell.cellIndex}日`, '欠席');
+                }
+            });
+        });
+
+        bulkClearButton.addEventListener('click', () => {
+            selectedCells.forEach(cell => {
+                if (cell.contentEditable !== "true") {
+                    cell.innerText = '';
+                    saveData(cell.parentNode.cells[0].innerText, `${months[currentMonth]} ${cell.cellIndex}日`, '');
+                }
+            });
+        });
+    });
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </body>
 </html>
-
-               
-
