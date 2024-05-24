@@ -126,16 +126,15 @@ function generateTable() {
     const dateRow = table.parentNode.querySelector('thead tr');
     dateRow.innerHTML = ''; // 日付の行をクリア
     const monthDays = new Date(new Date().getFullYear(), currentMonth + 1, 0).getDate(); // 今月の日数
-    for (let i = 1; i <= monthDays; i++) {
+    for (let i = 0; i <= monthDays; i++) {
         let th = document.createElement('th');
-        th.innerText = `${months[currentMonth]} ${i}日`;
+        if (i === 0) {
+            th.innerText = '氏名';
+        } else {
+            th.innerText = `${i}日`;
+        }
         dateRow.appendChild(th);
     }
-
-    // 氏名のセルを生成
-    let headerRow = table.insertRow();
-    let headerCell = headerRow.insertCell(0);
-    headerCell.innerText = '氏名';
 
     // 各氏名ごとに行を生成
     names.forEach(name => {
