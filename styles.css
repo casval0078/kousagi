@@ -2,9 +2,29 @@ body {
     font-family: Arial, sans-serif;
 }
 
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.controls {
+    display: flex;
+    justify-content: space-between;
+    width: 80%;
+    margin: 20px 0;
+}
+
+.buttons, .name-management {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
 table {
     width: 100%;
     border-collapse: collapse;
+    margin-top: 20px;
 }
 
 th, td {
@@ -18,6 +38,6 @@ th {
 }
 
 button {
-    margin: 10px;
+    margin: 5px;
     padding: 10px 20px;
 }
