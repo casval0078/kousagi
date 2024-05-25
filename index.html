@@ -142,17 +142,11 @@
 
         // Function to load names from Firebase
         function loadNames() {
-            const names = [];
-            db.collection("attendance").get().then((querySnapshot) => {
-                querySnapshot.forEach((doc) => {
-                    names.push(doc.id);
-                });
-                generateTable(names);
-            })
-            .catch((error) => {
-                console.error("Error getting documents: ", error);
+            const querySnapshot = await getDocs(collection(db, 'attendance'));
+            querySnapshot.forEach(doc => {
+              console.log(doc.id, ' => ', doc.data());
             });
-        }
+          }
 
         // Script to handle table interactions
         document.addEventListener('DOMContentLoaded', (event) => {
