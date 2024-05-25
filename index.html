@@ -130,7 +130,7 @@
 
         // Functions to save data to Firebase
         function saveData(name, date, value) {
-            db.collection("attendance").doc(name).set({
+            db.collection("attendance").doc(nameToAdd).set({
                 [date]: value
             }, { merge: true })
             .then(() => {
