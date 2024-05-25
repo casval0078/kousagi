@@ -13,7 +13,7 @@
         }
         .button-group {
             display: flex;
-            gap: 5px; /* ボタン間の間隔を調整 */
+            gap: 10px;
             flex-wrap: wrap;
         }
         .month-links {
@@ -53,13 +53,9 @@
             border: 1px solid #ddd;
             padding: 8px;
             text-align: center;
-            cursor: pointer; /* カーソルをポインターに変更 */
         }
         th {
             background-color: #f2f2f2;
-        }
-        .selected {
-            background-color: #b0c4de; /* 選択されたセルの背景色 */
         }
     </style>
 </head>
@@ -109,48 +105,29 @@
     </div>
     <!-- Firebase SDK -->
     <script type="module">
-          import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js';
-        　import { getFirestore, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js';
-        
-        // Firebaseの設定
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
+        import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-database.js";
+
+        // Your web app's Firebase configuration
         const firebaseConfig = {
-              apiKey: "AIzaSyDPUoZSZCBmJi7yMtIp6apBEfEJqIJWZRY",
-              authDomain: "kousagi-2e126.firebaseapp.com",
-              databaseURL: "https://kousagi-2e126-default-rtdb.asia-southeast1.firebasedatabase.app",
-              projectId: "kousagi-2e126",
-              storageBucket: "kousagi-2e126.appspot.com",
-              messagingSenderId: "379985487644",
-              appId: "1:379985487644:web:e8ca61a2fb7cbc2fc37cd9",
-              measurementId: "G-DB225BE3JD"
+            apiKey: "AIzaSyDPUoZSZCBmJi7yMtIp6apBEfEJqIJWZRY",
+            authDomain: "kousagi-2e126.firebaseapp.com",
+            projectId: "kousagi-2e126",
+            storageBucket: "kousagi-2e126.appspot.com",
+            messagingSenderId: "379985487644",
+            appId: "1:379985487644:web:e8ca61a2fb7cbc2fc37cd9",
+            measurementId: "G-DB225BE3JD"
         };
 
-        // Firebaseの初期化
-        　const app = initializeApp(firebaseConfig);
-          const db = getFirestore(app);
-
-        // 選択されたセルを保持する配列
-        let selectedCells = [];
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
         // Functions to save data to Firebase
         function saveData(name, date, value) {
-            db.collection("attendance").doc(nameToAdd).set({
-                [date]: value
-            }, { merge: true })
-            .then(() => {
-                console.log("Document successfully written!");
-            })
-            .catch((error) => {
-                console.error("Error writing document: ", error);
-            });
+            set(ref(db, 'attendance/' + name + '/' + date), value);
         }
-
-        // Function to load names from Firebase
-        async function loadNames() {
-            const querySnapshot = await getDocs(collection(db, 'attendance'));
-            querySnapshot.forEach(doc => {
-              console.log(doc.id, ' => ', doc.data());
-            });
-          }
 
         // Script to handle table interactions
         document.addEventListener('DOMContentLoaded', (event) => {
@@ -164,19 +141,19 @@
             const dateRow = table.parentNode.querySelector('thead tr');
             const exportButton = document.getElementById('export-button');
 
-            function updateMonth(monthIndex) {
-                currentMonth = monthIndex;
-                generateTable(names); // Regenerate table
-            }
-
             const months = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
             let currentMonth = 4; // 5月のインデックスは4（0-indexed）
-            let names = []; // 名前の配列を初期化
 
-            function generateTable(names) {
-                                // Clear date row
+            const names = ["あ"];
+            let selectedCells = [];
+
+            // ページロード時にテーブルを生成
+            generateTable();
+
+            function generateTable() {
+                // 日付の行をクリア
                 dateRow.innerHTML = '';
-                const monthDays = new Date(new Date().getFullYear(), currentMonth + 1, 0).getDate(); // Number of days in current month
+                const monthDays = new Date(new Date().getFullYear(), currentMonth + 1, 0).getDate(); // 今月の日数
                 for (let i = 0; i <= monthDays; i++) {
                     let th = document.createElement('th');
                     if (i === 0) {
@@ -187,22 +164,69 @@
                     dateRow.appendChild(th);
                 }
 
-                // Clear table
+                // テーブルの初期化
                 table.innerHTML = '';
 
-                // Generate rows for each name
+                // 各氏名ごとに行を生成
                 names.forEach(name => {
                     let row = table.insertRow();
                     let nameCell = row.insertCell(0);
                     nameCell.innerText = name;
                     for (let i = 1; i <= monthDays; i++) {
                         let dateCell = row.insertCell(i);
-                        dateCell.innerText = ''; // Insert empty cell
+                        dateCell.innerText = ''; // 空のセルを挿入
                     }
                 });
             }
 
-            // Handle month link clicks
+            table.addEventListener('click', (e) => {
+                if (e.target.tagName === 'TD' && e.target.cellIndex > 0) {
+                    if (selectedCells.includes(e.target)) {
+                        e.target.style.backgroundColor = '';
+                        selectedCells = selectedCells.filter(cell => cell !== e.target);
+                    } else {
+                        e.target.style.backgroundColor = '#b0c4de';
+                        selectedCells.push(e.target);
+                    }
+                }
+            });
+
+            bulkTimeButton.addEventListener('click', () => {
+                const currentTime = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+                selectedCells.forEach(cell => {
+                    cell.innerText = currentTime;
+                    saveData(cell.parentElement.cells[0].innerText, dateRow.cells[cell.cellIndex].innerText, currentTime);
+                });
+                clearSelection();
+            });
+
+            bulkAbsentButton.addEventListener('click', () => {
+                selectedCells.forEach(cell => {
+                    cell.innerText = '欠席';
+                    saveData(cell.parentElement.cells[0].innerText, dateRow.cells[cell.cellIndex].innerText, '欠席');
+                });
+                clearSelection();
+            });
+
+            bulkClearButton.addEventListener('click', () => {
+                selectedCells.forEach(cell => {
+                    cell.innerText = '';
+                    saveData(cell.parentElement.cells[0].innerText, dateRow.cells[cell.cellIndex].innerText, '');
+                });
+                clearSelection();
+            });
+
+            function clearSelection() {
+                selectedCells.forEach(cell => cell.style.backgroundColor = '');
+                selectedCells = [];
+            }
+
+            function updateMonth(monthIndex) {
+                currentMonth = monthIndex;
+                generateTable(); // テーブルを再生成
+            }
+
+            // 月のリンクをクリックしたときの処理
             const monthLinks = document.querySelectorAll('.month-links a');
             monthLinks.forEach((link, index) => {
                 link.addEventListener('click', (event) => {
@@ -211,21 +235,12 @@
                 });
             });
 
-            // 名前をFirebaseから読み込む
-            loadNames();
-
             addNameButton.addEventListener('click', () => {
                 const nameToAdd = nameInput.value.trim();
                 if (nameToAdd && !names.includes(nameToAdd)) {
                     names.push(nameToAdd);
-                    db.collection("attendance").doc(nameToAdd).set({})
-                    .then(() => {
-                        generateTable(names);
-                        nameInput.value = '';
-                    })
-                    .catch((error) => {
-                        console.error("Error adding document: ", error);
-                    });
+                    generateTable();
+                    nameInput.value = '';
                 }
             });
 
@@ -235,14 +250,8 @@
                     const index = names.indexOf(nameToRemove);
                     if (index > -1) {
                         names.splice(index, 1);
-                        db.collection("attendance").doc(nameToRemove).delete()
-                        .then(() => {
-                            generateTable(names);
-                            nameInput.value = '';
-                        })
-                        .catch((error) => {
-                            console.error("Error removing document: ", error);
-                        });
+                        generateTable();
+                        nameInput.value = '';
                     }
                 }
             });
@@ -263,47 +272,8 @@
                 XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
                 XLSX.writeFile(wb, 'attendance.xlsx');
             });
-
-            table.addEventListener('click', (e) => {
-                if (e.target.tagName === 'TD' && e.target.cellIndex > 0) {
-                    if (selectedCells.includes(e.target)) {
-                        e.target.classList.remove('selected'); // Remove selected class
-                        selectedCells = selectedCells.filter(cell => cell !== e.target);
-                    } else {
-                        e.target.classList.add('selected'); // Add selected class
-                        selectedCells.push(e.target);
-                    }
-                }
-            });
-
-            bulkTimeButton.addEventListener('click', () => {
-                const currentTime = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
-                selectedCells.forEach(cell => {
-                    if (cell.contentEditable !== "true") {
-                        cell.innerText = currentTime;
-                        saveData(cell.parentNode.cells[0].innerText, `${months[currentMonth]} ${cell.cellIndex}日`, currentTime);
-                    }
-                });
-            });
-
-            bulkAbsentButton.addEventListener('click', () => {
-                selectedCells.forEach(cell => {
-                    if (cell.contentEditable !== "true") {
-                        cell.innerText = '欠席';
-                        saveData(cell.parentNode.cells[0].innerText, `${months[currentMonth]} ${cell.cellIndex}日`, '欠席');
-                    }
-                });
-            });
-
-            bulkClearButton.addEventListener('click', () => {
-                selectedCells.forEach(cell => {
-                    if (cell.contentEditable !== "true") {
-                        cell.innerText = '';
-                        saveData(cell.parentNode.cells[0].innerText, `${months[currentMonth]} ${cell.cellIndex}日`, '');
-                    }
-                });
-            });
         });
     </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </body>
 </html>
