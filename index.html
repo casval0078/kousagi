@@ -141,7 +141,7 @@
         }
 
         // Function to load names from Firebase
-        function loadNames() {
+        async function loadNames() {
             const querySnapshot = await getDocs(collection(db, 'attendance'));
             querySnapshot.forEach(doc => {
               console.log(doc.id, ' => ', doc.data());
