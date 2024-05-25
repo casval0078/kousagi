@@ -104,212 +104,226 @@
         <button id="export-button" class="export-button">エクセルに出力</button>
     </div>
     <!-- Firebase SDK -->
-<script type="module">
-    // Import the functions you need from the SDKs you need
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
-    import { getFirestore, doc, setDoc, getDocs, collection, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDocs, collection, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
 
-    // Your web app's Firebase configuration
-    const firebaseConfig = {
-        apiKey: "AIzaSyDPUoZSZCBmJi7yMtIp6apBEfEJqIJWZRY",
-        authDomain: "kousagi-2e126.firebaseapp.com",
-        projectId: "kousagi-2e126",
-        storageBucket: "kousagi-2e126.appspot.com",
-        messagingSenderId: "379985487644",
-        appId: "1:379985487644:web:e8ca61a2fb7cbc2fc37cd9",
-        measurementId: "G-DB225BE3JD"
-    };
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDPUoZSZCBmJi7yMtIp6apBEfEJqIJWZRY",
+            authDomain: "kousagi-2e126.firebaseapp.com",
+            projectId: "kousagi-2e126",
+            storageBucket: "kousagi-2e126.appspot.com",
+            messagingSenderId: "379985487644",
+            appId: "1:379985487644:web:e8ca61a2fb7cbc2fc37cd9",
+            measurementId: "G-DB225BE3JD"
+        };
 
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-    // Functions to save data to Firestore
-    async function saveData(name, date, value) {
-        try {
-            const docRef = doc(db, 'attendance', name);
-            await updateDoc(docRef, {
-                [date]: value
-            });
-        } catch (e) {
-            console.error("Error adding document: ", e);
-        }
-    }
-
-    // Functions to add name to Firestore
-    async function addNameToFirestore(name) {
-        try {
-            await setDoc(doc(db, 'attendance', name), {});
-        } catch (e) {
-            console.error("Error adding document: ", e);
-        }
-    }
-
-    // Functions to remove name from Firestore
-    async function removeNameFromFirestore(name) {
-        try {
-            await deleteDoc(doc(db, 'attendance', name));
-        } catch (e) {
-            console.error("Error deleting document: ", e);
-        }
-    }
-
-    // Function to load names from Firestore
-    async function loadNamesFromFirestore() {
-        const querySnapshot = await getDocs(collection(db, 'attendance'));
-        const names = [];
-        querySnapshot.forEach((doc) => {
-            names.push(doc.id);
-        });
-        return names;
-    }
-
-    document.addEventListener('DOMContentLoaded', async (event) => {
-        const bulkTimeButton = document.getElementById('bulk-time-button');
-        const bulkAbsentButton = document.getElementById('bulk-absent-button');
-        const bulkClearButton = document.getElementById('bulk-clear-button');
-        const addNameButton = document.getElementById('add-name-button');
-        const removeNameButton = document.getElementById('remove-name-button');
-        const nameInput = document.getElementById('name-input');
-        const table = document.getElementById('attendance-table').getElementsByTagName('tbody')[0];
-        const dateRow = table.parentNode.querySelector('thead tr');
-        const exportButton = document.getElementById('export-button');
-
-        const months = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
-        let currentMonth = 4; // 5月のインデックスは4（0-indexed）
-
-        let names = await loadNamesFromFirestore();
-        let selectedCells = [];
-
-        // ページロード時にテーブルを生成
-        generateTable();
-
-        function generateTable() {
-            // 日付の行をクリア
-            dateRow.innerHTML = '';
-            const monthDays = new Date(new Date().getFullYear(), currentMonth + 1, 0).getDate(); // 今月の日数
-            for (let i = 0; i <= monthDays; i++) {
-                let th = document.createElement('th');
-                if (i === 0) {
-                    th.innerText = '氏名';
-                } else {
-                    th.innerText = `${months[currentMonth]} ${i}日`;
-                }
-                dateRow.appendChild(th);
+        // Functions to save data to Firestore
+        async function saveData(name, date, value) {
+            try {
+                const docRef = doc(db, 'attendance', name);
+                await updateDoc(docRef, {
+                    [date]: value
+                });
+            } catch (e) {
+                console.error("Error saving document: ", e);
             }
-
-            // テーブルの初期化
-            table.innerHTML = '';
-
-            // 各氏名ごとに行を生成
-            names.forEach(name => {
-                let row = table.insertRow();
-                let nameCell = row.insertCell(0);
-                nameCell.innerText = name;
-                for (let i = 1; i <= monthDays; i++) {
-                    let dateCell = row.insertCell(i);
-                    dateCell.innerText = ''; // 空のセルを挿入
-                }
-            });
         }
 
-        table.addEventListener('click', (e) => {
-            if (e.target.tagName === 'TD' && e.target.cellIndex > 0) {
-                if (selectedCells.includes(e.target)) {
-                    e.target.style.backgroundColor = '';
-                    selectedCells = selectedCells.filter(cell => cell !== e.target);
-                } else {
-                    e.target.style.backgroundColor = '#b0c4de';
-                    selectedCells.push(e.target);
+        // Functions to add name to Firestore
+        async function addNameToFirestore(name) {
+            try {
+                await setDoc(doc(db, 'attendance', name), {});
+            } catch (e) {
+                console.error("Error adding document: ", e);
+            }
+        }
+
+        // Functions to remove name from Firestore
+        async function removeNameFromFirestore(name) {
+            try {
+                await deleteDoc(doc(db, 'attendance', name));
+            } catch (e) {
+                console.error("Error deleting document: ", e);
+            }
+        }
+
+        // Function to load names from Firestore
+        async function loadNamesFromFirestore() {
+            const querySnapshot = await getDocs(collection(db, 'attendance'));
+            const names = [];
+            querySnapshot.forEach((doc) => {
+                names.push(doc.id);
+            });
+            return names;
+        }
+
+        document.addEventListener('DOMContentLoaded', async (event) => {
+            const bulkTimeButton = document.getElementById('bulk-time-button');
+            const bulkAbsentButton = document.getElementById('bulk-absent-button');
+            const bulkClearButton = document.getElementById('bulk-clear-button');
+            const addNameButton = document.getElementById('add-name-button');
+            const removeNameButton = document.getElementById('remove-name-button');
+            const nameInput = document.getElementById('name-input');
+            const table = document.getElementById('attendance-table').getElementsByTagName('tbody')[0];
+            const dateRow = table.parentNode.querySelector('thead tr');
+            const exportButton = document.getElementById('export-button');
+
+            const months = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
+            let currentMonth = 4; // 5月のインデックスは4（0-indexed）
+
+            let names = await loadNamesFromFirestore();
+            let selectedCells = [];
+
+            // ページロード時にテーブルを生成
+            generateTable();
+
+            async function generateTable() {
+                // 日付の行をクリア
+                dateRow.innerHTML = '';
+                const monthDays = new Date(new Date().getFullYear(), currentMonth + 1, 0).getDate(); // 今月の日数
+                for (let i = 0; i <= monthDays; i++) {
+                    let th = document.createElement('th');
+                    if (i === 0) {
+                        th.innerText = '氏名';
+                    } else {
+                        th.innerText = `${months[currentMonth]} ${i}日`;
+                    }
+                    dateRow.appendChild(th);
+                }
+
+                // テーブルの初期化
+                table.innerHTML = '';
+
+                // 各氏名ごとに行を生成
+                for (const name of names) {
+                    let row = table.insertRow();
+                    let nameCell = row.insertCell(0);
+                    nameCell.innerText = name;
+
+                    for (let i = 1; i <= monthDays; i++) {
+                        let dateCell = row.insertCell(i);
+                        dateCell.innerText = ''; // 空のセルを挿入
+
+                        // Firestoreからデータを取得してセルに挿入
+                        const docRef = doc(db, 'attendance', name);
+                        const docSnap = await getDocs(docRef);
+                        const date = `${months[currentMonth]} ${i}日`;
+                        if (docSnap.exists() && docSnap.data()[date]) {
+                            dateCell.innerText = docSnap.data()[date];
+                        }
+                    }
                 }
             }
-        });
 
-        bulkTimeButton.addEventListener('click', () => {
-            const currentTime = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
-            selectedCells.forEach(cell => {
-                cell.innerText = currentTime;
-                saveData(cell.parentElement.cells[0].innerText, dateRow.cells[cell.cellIndex].innerText, currentTime);
+            table.addEventListener('click', (e) => {
+                if (e.target.tagName === 'TD' && e.target.cellIndex > 0) {
+                    if (selectedCells.includes(e.target)) {
+                        e.target.style.backgroundColor = '';
+                        selectedCells = selectedCells.filter(cell => cell !== e.target);
+                    } else {
+                        e.target.style.backgroundColor = '#b0c4de';
+                        selectedCells.push(e.target);
+                    }
+                }
             });
-            clearSelection();
-        });
 
-        bulkAbsentButton.addEventListener('click', () => {
-            selectedCells.forEach(cell => {
-                cell.innerText = '欠席';
-                saveData(cell.parentElement.cells[0].innerText, dateRow.cells[cell.cellIndex].innerText, '欠席');
+            bulkTimeButton.addEventListener('click', async () => {
+                const currentTime = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+                for (const cell of selectedCells) {
+                    const name = cell.parentElement.cells[0].innerText;
+                    const date = dateRow.cells[cell.cellIndex].innerText;
+                    cell.innerText = currentTime;
+                    await saveData(name, date, currentTime);
+                }
+                clearSelection();
             });
-            clearSelection();
-        });
 
-        bulkClearButton.addEventListener('click', () => {
-            selectedCells.forEach(cell => {
-                cell.innerText = '';
-                saveData(cell.parentElement.cells[0].innerText, dateRow.cells[cell.cellIndex].innerText, '');
+            bulkAbsentButton.addEventListener('click', async () => {
+                for (const cell of selectedCells) {
+                    const name = cell.parentElement.cells[0].innerText;
+                    const date = dateRow.cells[cell.cellIndex].innerText;
+                    cell.innerText = '欠席';
+                    await saveData(name, date, '欠席');
+                }
+                clearSelection();
             });
-            clearSelection();
-        });
 
-        function clearSelection() {
-            selectedCells.forEach(cell => cell.style.backgroundColor = '');
-            selectedCells = [];
-        }
-
-        function updateMonth(monthIndex) {
-            currentMonth = monthIndex;
-            generateTable(); // テーブルを再生成
-        }
-
-        // 月のリンクをクリックしたときの処理
-        const monthLinks = document.querySelectorAll('.month-links a');
-        monthLinks.forEach((link, index) => {
-            link.addEventListener('click', (event) => {
-                event.preventDefault();
-                updateMonth(index);
+            bulkClearButton.addEventListener('click', async () => {
+                for (const cell of selectedCells) {
+                    const name = cell.parentElement.cells[0].innerText;
+                    const date = dateRow.cells[cell.cellIndex].innerText;
+                    cell.innerText = '';
+                    await saveData(name, date, '');
+                }
+                clearSelection();
             });
-        });
 
-        addNameButton.addEventListener('click', async () => {
-            const nameToAdd = nameInput.value.trim();
-            if (nameToAdd && !names.includes(nameToAdd)) {
-                names.push(nameToAdd);
-                await addNameToFirestore(nameToAdd);
-                generateTable();
-                nameInput.value = '';
+            function clearSelection() {
+                selectedCells.forEach(cell => cell.style.backgroundColor = '');
+                selectedCells = [];
             }
-        });
 
-        removeNameButton.addEventListener('click', async () => {
-            const nameToRemove = nameInput.value.trim();
-            if (names.includes(nameToRemove)) {
-                const index = names.indexOf(nameToRemove);
-                if (index > -1) {
-                    names.splice(index, 1);
-                    await removeNameFromFirestore(nameToRemove);
+            function updateMonth(monthIndex) {
+                currentMonth = monthIndex;
+                generateTable(); // テーブルを再生成
+            }
+
+            // 月のリンクをクリックしたときの処理
+            const monthLinks = document.querySelectorAll('.month-links a');
+            monthLinks.forEach((link, index) => {
+                link.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    updateMonth(index);
+                });
+            });
+
+            addNameButton.addEventListener('click', async () => {
+                const nameToAdd = nameInput.value.trim();
+                if (nameToAdd && !names.includes(nameToAdd)) {
+                    names.push(nameToAdd);
+                    await addNameToFirestore(nameToAdd);
                     generateTable();
                     nameInput.value = '';
                 }
-            }
-        });
-
-        exportButton.addEventListener('click', () => {
-            const wb = XLSX.utils.book_new();
-            const ws_data = [];
-            const rows = table.parentNode.querySelectorAll('tr');
-
-            rows.forEach(row => {
-                const cells = row.querySelectorAll('th, td');
-                const row_data = [];
-                cells.forEach(cell => row_data.push(cell.innerText));
-                ws_data.push(row_data);
             });
 
-            const ws = XLSX.utils.aoa_to_sheet(ws_data);
-            XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
-            XLSX.writeFile(wb, 'attendance.xlsx');
+            removeNameButton.addEventListener('click', async () => {
+                const nameToRemove = nameInput.value.trim();
+                if (names.includes(nameToRemove)) {
+                    const index = names.indexOf(nameToRemove);
+                    if (index > -1) {
+                        names.splice(index, 1);
+                        await removeNameFromFirestore(nameToRemove);
+                        generateTable();
+                        nameInput.value = '';
+                    }
+                }
+            });
+
+            exportButton.addEventListener('click', () => {
+                const wb = XLSX.utils.book_new();
+                const ws_data = [];
+                const rows = table.parentNode.querySelectorAll('tr');
+
+                rows.forEach(row => {
+                    const cells = row.querySelectorAll('th, td');
+                    const row_data = [];
+                    cells.forEach(cell => row_data.push(cell.innerText));
+                    ws_data.push(row_data);
+                });
+
+                const ws = XLSX.utils.aoa_to_sheet(ws_data);
+                XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+                XLSX.writeFile(wb, 'attendance.xlsx');
+            });
         });
-    });
-</script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    </script>
 </body>
 </html>
