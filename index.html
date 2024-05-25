@@ -108,10 +108,9 @@
         <button id="export-button" class="export-button">エクセルに出力</button>
     </div>
     <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script>
+    <script type="module">
+          import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js';
+          import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js';
         // Firebaseの設定
         const firebaseConfig = {
             apiKey: "AIzaSyDPUoZSZCBmJi7yMtIp6apBEfEJqIJWZRY",
