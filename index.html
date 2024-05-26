@@ -242,15 +242,42 @@ async function generateTable(monthIndex) {
             });
 
             bulkTimeButton.addEventListener('click', async () => {
-                const currentTime = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
-                for (const cell of selectedCells) {
-                    const name = cell.parentElement.cells[0].innerText;
-                    const date = dateRow.cells[cell.cellIndex].innerText;
+    const currentTime = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+    let errorFlag = false; // エラーフラグを追加
+
+    for (const cell of selectedCells) {
+        const name = cell.parentElement.cells[0].innerText;
+        const date = dateRow.cells[cell.cellIndex].innerText;
+        // 偶数行のセルに対して処理を行う
+        if (cell.parentElement.rowIndex % 2 === 0) {
+            // 一つ上の奇数行のセルを取得
+            const oddRowCell = table.rows[cell.parentElement.rowIndex - 1].cells[cell.cellIndex];
+            // 一つ上の奇数行のセルが空であればエラーメッセージを表示
+            if (!oddRowCell.innerText.trim()) {
+                alert("出勤時間が入力されていません");
+                errorFlag = true;
+                break; // エラーがあったらループを抜ける
+            } else {
+                // セルが空でない場合のみ時刻を入力する
+                if (!cell.innerText.trim()) {
                     cell.innerText = currentTime;
                     await saveData(name, date, currentTime);
+                } else {
+                    // セルがすでに入力されている場合はエラーメッセージを表示
+                    alert("出勤時間が入力されていません");
+                    errorFlag = true;
+                    break; // エラーがあったらループを抜ける
                 }
-                clearSelection();
-            });
+            }
+        }
+    }
+
+    // エラーフラグが立っていない場合にのみ選択を解除する
+    if (!errorFlag) {
+        clearSelection();
+    }
+});
+
 
             bulkAbsentButton.addEventListener('click', async () => {
                 for (const cell of selectedCells) {
