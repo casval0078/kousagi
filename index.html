@@ -156,13 +156,14 @@
 
         // Function to load names from Firestore
         async function loadNamesFromFirestore() {
-            const querySnapshot = await getDocs(collection(db, 'attendance'));
-            const names = [];
-            querySnapshot.forEach((doc) => {
-                names.push(doc.id);
-            });
-            return names;
-        }
+    const querySnapshot = await getDocs(collection(db, 'attendance'));
+    const names = [];
+    querySnapshot.forEach((doc) => {
+        names.push(doc.id);
+    });
+    return names;
+}
+
 
         document.addEventListener('DOMContentLoaded', async (event) => {
             const bulkTimeButton = document.getElementById('bulk-time-button');
