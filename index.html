@@ -274,9 +274,9 @@
                 selectedCells = [];
             }
 
-            function updateMonth(monthIndex) {
-    currentMonthIndex = monthIndex; // currentMonthIndex の再代入ではなく、値の変更
-    generateTable(); // テーブルを再生成
+           function updateMonth(monthIndex) {
+    currentMonthIndex = monthIndex; // currentMonthIndex の再宣言ではなく、値の変更
+    generateTable(monthIndex); // テーブルを再生成する際に月のインデックスを渡す
 }
 
             // 月のリンクをクリックしたときの処理
