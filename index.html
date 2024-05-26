@@ -60,7 +60,17 @@
 tbody tr:nth-child(even) {
     background-color:#FFF4DB;
 }
+/* 名前の列 */
+th:first-child,
+td:first-child {
+    width: 100px; /* 8文字分の幅 */
+}
 
+/* 日付の列 */
+th:not(:first-child),
+td:not(:first-child) {
+    width: 150px; /* 日付の幅 */
+}
     </style>
 </head>
 <body>
