@@ -174,53 +174,57 @@
             const table = document.getElementById('attendance-table').getElementsByTagName('tbody')[0];
             const dateRow = table.parentNode.querySelector('thead tr');
             const exportButton = document.getElementById('export-button');
+            const currentMonthIndex = new Date().getMonth();
+            const currentMonth = months[currentMonthIndex];
 
             const months = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
-            let currentMonth = 4; // 5月のインデックスは4（0-indexed）
-
             let names = await loadNamesFromFirestore();
-            let selectedCells = [];
+    let selectedCells = [];
+    let currentMonthIndex = months.indexOf(currentMonth); // 5月のインデックスは4（0-indexed）
 
-            // ページロード時にテーブルを生成
-            generateTable();
+    // ページロード時にテーブルを生成
+    generateTable(currentMonthIndex);
 
-            async function generateTable() {
-                // 日付の行をクリア
-                dateRow.innerHTML = '';
-                const monthDays = new Date(new Date().getFullYear(), currentMonth + 1, 0).getDate(); // 今月の日数
-                for (let i = 0; i <= monthDays; i++) {
-                    let th = document.createElement('th');
-                    if (i === 0) {
-                        th.innerText = '氏名';
-                    } else {
-                        th.innerText = `${months[currentMonth]} ${i}日`;
-                    }
-                    dateRow.appendChild(th);
-                }
+    async function generateTable(monthIndex) {
+        // 日付の行をクリア
+        dateRow.innerHTML = '';
+        const monthDays = new Date(new Date().getFullYear(), monthIndex + 1, 0).getDate(); // 今月の日数
+        for (let i = 0; i <= monthDays; i++) {
+            let th = document.createElement('th');
+            if (i === 0) {
+                th.innerText = '氏名';
+            } else {
+                th.innerText = `${months[monthIndex]} ${i}日`;
+            }
+            dateRow.appendChild(th);
+        }
 
-                // テーブルの初期化
-                table.innerHTML = '';
+        // テーブルの初期化
+        table.innerHTML = '';
 
-                // 各氏名ごとに行を生成
-                for (const name of names) {
-                    let row = table.insertRow();
-                    let nameCell = row.insertCell(0);
-                    nameCell.innerText = name;
+        // 各氏名ごとに行を生成
+        for (const name of names) {
+            let row = table.insertRow();
+            let nameCell = row.insertCell(0);
+            nameCell.innerText = name;
 
-                    for (let i = 1; i <= monthDays; i++) {
-                        let dateCell = row.insertCell(i);
-                        dateCell.innerText = ''; // 空のセルを挿入
+            for (let i = 1; i <= monthDays; i++) {
+                let dateCell = row.insertCell(i);
+                dateCell.innerText = ''; // 空のセルを挿入
 
-                        // Firestoreからデータを取得してセルに挿入
-                        const docRef = doc(db, 'attendance', name);
-                        const docSnap = await getDoc(docRef);
-                        const date = `${months[currentMonth]} ${i}日`;
-                        if (docSnap.exists() && docSnap.data()[date]) {
-                            dateCell.innerText = docSnap.data()[date];
-                        }
-                    }
+                // Firestoreからデータを取得してセルに挿入
+                const docRef = doc(db, 'attendance', name);
+                const docSnap = await getDoc(docRef);
+                const date = `${months[monthIndex]} ${i}日`;
+                if (docSnap.exists() && docSnap.data()[date]) {
+                    dateCell.innerText = docSnap.data()[date];
                 }
             }
+        }
+    }
+
+    // 初期化処理の中で現在の月を使用するよう修正
+    generateTable(currentMonthIndex);
 
             table.addEventListener('click', (e) => {
                 if (e.target.tagName === 'TD' && e.target.cellIndex > 0) {
