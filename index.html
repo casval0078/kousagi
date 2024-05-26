@@ -57,10 +57,6 @@
         th {
             background-color: #f2f2f2;
         }
-        .inactive-day {
-            background-color: #f0f0f0; /* グレーアウトの背景色 */
-            color: #999; /* グレーアウトのテキスト色 */
-        }
     </style>
 </head>
 <body>
@@ -189,52 +185,43 @@
             generateTable();
 
             async function generateTable() {
-    // 日付の行をクリア
-    dateRow.innerHTML = '';
-    const monthDays = new Date(new Date().getFullYear(), currentMonth + 1, 0).getDate(); // 今月の日数
-    const monthDaysInMonth = new Date().getDate(); // 今月の日数
-    for (let i = 0; i <= 31; i++) { // 31日まで表示
-        let th = document.createElement('th');
-        if (i === 0) {
-            th.innerText = '氏名';
-        } else if (i <= monthDays) {
-            th.innerText = `${months[currentMonth]} ${i}日`;
-        } else {
-            th.innerText = ''; // 不要な日を空にする
-        }
-        dateRow.appendChild(th);
-    }
-
-    // テーブルの初期化
-    table.innerHTML = '';
-
-    // 各氏名ごとに行を生成
-    for (const name of names) {
-        let row = table.insertRow();
-        let nameCell = row.insertCell(0);
-        nameCell.innerText = name;
-
-        for (let i = 1; i <= 31; i++) { // 31日まで表示
-            if (i <= monthDays) {
-                let dateCell = row.insertCell(i);
-                dateCell.innerText = ''; // 空のセルを挿入
-
-                // 不要な日をグレーアウト
-                if (i > monthDaysInMonth) {
-                    dateCell.classList.add('inactive-day');
+                // 日付の行をクリア
+                dateRow.innerHTML = '';
+                const monthDays = new Date(new Date().getFullYear(), currentMonth + 1, 0).getDate(); // 今月の日数
+                for (let i = 0; i <= monthDays; i++) {
+                    let th = document.createElement('th');
+                    if (i === 0) {
+                        th.innerText = '氏名';
+                    } else {
+                        th.innerText = `${months[currentMonth]} ${i}日`;
+                    }
+                    dateRow.appendChild(th);
                 }
 
-                // Firestoreからデータを取得してセルに挿入
-                const docRef = doc(db, 'attendance', name);
-                const docSnap = await getDoc(docRef);
-                const date = `${months[currentMonth]} ${i}日`;
-                if (docSnap.exists() && docSnap.data()[date]) {
-                    dateCell.innerText = docSnap.data()[date];
+                // テーブルの初期化
+                table.innerHTML = '';
+
+                // 各氏名ごとに行を生成
+                for (const name of names) {
+                    let row = table.insertRow();
+                    let nameCell = row.insertCell(0);
+                    nameCell.innerText = name;
+
+                    for (let i = 1; i <= monthDays; i++) {
+                        let dateCell = row.insertCell(i);
+                        dateCell.innerText = ''; // 空のセルを挿入
+
+                        // Firestoreからデータを取得してセルに挿入
+                        const docRef = doc(db, 'attendance', name);
+                        const docSnap = await getDoc(docRef);
+                        const date = `${months[currentMonth]} ${i}日`;
+                        if (docSnap.exists() && docSnap.data()[date]) {
+                            dateCell.innerText = docSnap.data()[date];
+                        }
+                    }
                 }
             }
-        }
-    }
-}
+
             table.addEventListener('click', (e) => {
                 if (e.target.tagName === 'TD' && e.target.cellIndex > 0) {
                     if (selectedCells.includes(e.target)) {
