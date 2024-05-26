@@ -180,7 +180,6 @@
             const months = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
             let names = await loadNamesFromFirestore();
     let selectedCells = [];
-    let currentMonthIndex = months.indexOf(currentMonth); // 5月のインデックスは4（0-indexed）
 
     // ページロード時にテーブルを生成
     generateTable(currentMonthIndex);
