@@ -275,9 +275,9 @@
             }
 
             function updateMonth(monthIndex) {
-                currentMonth = monthIndex;
-                generateTable(); // テーブルを再生成
-            }
+    currentMonthIndex = monthIndex; // currentMonthIndex の再代入ではなく、値の変更
+    generateTable(); // テーブルを再生成
+}
 
             // 月のリンクをクリックしたときの処理
             const monthLinks = document.querySelectorAll('.month-links a');
