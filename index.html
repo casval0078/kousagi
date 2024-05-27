@@ -298,16 +298,26 @@
             });
 
             bulkClearButton.addEventListener('click', async () => {
-                for (const cell of selectedCells) {
-                    const date = cell.parentElement.cells[0].innerText;
-                    const nameIndex = Math.floor((cell.cellIndex - 1) / 2);
-                    const name = headerRow.cells[nameIndex + 1].innerText;
-                    const type = cell.cellIndex % 2 === 1 ? 'in' : 'out';
-                    cell.innerText = '';
-                    await saveData(name, date, type, '');
-                }
-                clearSelection();
-            });
+    try {
+        const batch = [];
+        for (const cell of selectedCells) {
+            const date = cell.parentElement.cells[0].innerText;
+            const nameIndex = Math.floor((cell.cellIndex - 1) / 2);
+            const name = headerRow.cells[nameIndex + 1].innerText;
+            const type = cell.cellIndex % 2 === 1 ? 'in' : 'out';
+            const fieldName = `${date.replace('/', '-').replace('月', '')}_${type}`;
+            const docRef = doc(db, 'attendance', name);
+            batch.push(updateDoc(docRef, {
+                [fieldName]: ''
+            }));
+        }
+        await Promise.all(batch);
+        generateTable(currentMonthIndex);
+        clearSelection();
+    } catch (error) {
+        console.error('Error clearing data:', error);
+    }
+});
 
             function clearSelection() {
                 selectedCells.forEach(cell => cell.style.backgroundColor = '');
