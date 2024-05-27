@@ -247,12 +247,14 @@
                         const docSnap = await getDoc(doc(db, 'attendance', name));
                         if (docSnap.exists()) {
                             const data = docSnap.data();
-                            if (data[`${date}_in`]) {
-                                inCell.innerText = data[`${date}_in`];
-                            }
-                            if (data[`${date}_out`]) {
-                                outCell.innerText = data[`${date}_out`];
-                            }
+                            const fieldNameIn = `${date.replace('/', '-').replace('月', '')}_in`; // 月とスラッシュを削除し、ダッシュに置き換える
+			const fieldNameOut = `${date.replace('/', '-').replace('月', '')}_out`; // 月とスラッシュを削除し、ダッシュに置き換える
+			if (data[fieldNameIn]) {
+  			  inCell.innerText = data[fieldNameIn];
+			}
+			if (data[fieldNameOut]) {
+  			  outCell.innerText = data[fieldNameOut];
+			}
                         }
                     }
                 }
