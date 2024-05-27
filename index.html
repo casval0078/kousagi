@@ -355,7 +355,7 @@
     // ヘッダー行を作成
     const header_row = ['日時'];
     names.forEach(name => {
-        header_row.push('出勤', '退勤');
+        header_row.push(name + '出勤', name + '退勤');
     });
     ws_data.push(header_row);
 
@@ -377,6 +377,7 @@
     // ワークブックをファイルに保存
     XLSX.writeFile(wb, 'attendance.xlsx');
 });
+
 
 
         });
