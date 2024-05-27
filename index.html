@@ -10,7 +10,7 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #FEE3D7; /* 背景色を指定 */
+            background-color: #FEE3D7;
         }
         .button-group {
             display: flex;
@@ -31,7 +31,7 @@
             flex-direction: column;
             align-items: center;
             padding: 20px;
-            background-color: white; /* コンテナの背景色を指定 */
+            background-color: white;
         }
         .name-management {
             margin-top: 20px;
@@ -55,23 +55,21 @@
             border: 1px solid #ddd;
             padding: 8px;
             text-align: center;
-            min-width: 80px; /* セルの最小幅を指定 */
+            min-width: 80px;
         }
-        /* 奇数行に薄い青色を付ける */
         tbody td:nth-child(odd) {
             background-color: #FFF4DB;
         }
-        /* 日付の列 */
         th:first-child,
         td:first-child {
-            min-width: 50px; /* 日付の幅 */
+            min-width: 50px;
         }
         th.colspan-2 {
             text-align: center;
-            border-right: none; /* Right border of the first cell in the colspan */
+            border-right: none;
         }
         th.colspan-2 + th {
-            border-left: none; /* Left border of the second cell in the colspan */
+            border-left: none;
         }
     </style>
 </head>
@@ -109,22 +107,16 @@
                 <thead>
                     <tr>
                         <th rowspan="2">日時</th>
-                        <!-- 氏名を動的に生成 -->
                     </tr>
-                    <tr>
-                        <!-- 出勤、退勤の列ヘッダーを動的に生成 -->
-                    </tr>
+                    <tr></tr>
                 </thead>
-                <tbody>
-                    <!-- 出退勤時間を動的に生成 -->
-                </tbody>
+                <tbody></tbody>
             </table>
         </div>
         <button id="export-button" class="export-button">エクセルに出力</button>
     </div>
     <!-- Firebase SDK -->
     <script type="module">
-        // Import the functions you need from the SDKs you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
         import { getFirestore, doc, setDoc, getDoc, getDocs, collection, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
 
@@ -139,23 +131,28 @@
             measurementId: "G-DB225BE3JD"
         };
 
-        // Initialize Firebase
+
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Functions to save data to Firestore
         async function saveData(name, date, type, value) {
             try {
                 const docRef = doc(db, 'attendance', name);
-                await updateDoc(docRef, {
-                    [`${date}_${type}`]: value
-                });
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    await updateDoc(docRef, {
+                        [`${date}_${type}`]: value
+                    });
+                } else {
+                    await setDoc(docRef, {
+                        [`${date}_${type}`]: value
+                    });
+                }
             } catch (e) {
                 console.error("Error saving document: ", e);
             }
         }
 
-        // Functions to add name to Firestore
         async function addNameToFirestore(name) {
             try {
                 await setDoc(doc(db, 'attendance', name), {});
@@ -164,7 +161,6 @@
             }
         }
 
-        // Functions to remove name from Firestore
         async function removeNameFromFirestore(name) {
             try {
                 await deleteDoc(doc(db, 'attendance', name));
@@ -173,7 +169,6 @@
             }
         }
 
-        // Function to load names from Firestore
         async function loadNamesFromFirestore() {
             const querySnapshot = await getDocs(collection(db, 'attendance'));
             const names = [];
@@ -202,22 +197,20 @@
             let names = await loadNamesFromFirestore();
             let selectedCells = [];
 
-            // ページロード時にテーブルを生成
             generateTable(currentMonthIndex);
 
             async function generateTable(monthIndex) {
-                // ヘッダ行をクリア
                 while (headerRow.cells.length > 1) {
                     headerRow.deleteCell(-1);
                 }
-                while (subHeaderRow.cells.length > 1) {
+                while (subHeaderRow.cells.length > 0) {
                     subHeaderRow.deleteCell(-1);
                 }
-                const monthDays = new Date(new Date().getFullYear(), monthIndex + 1, 0).getDate(); // 今月の日数
+                const monthDays = new Date(new Date().getFullYear(), monthIndex + 1, 0).getDate();
                 for (const name of names) {
                     let th = document.createElement('th');
                     th.innerText = name;
-                    th.colSpan = 2; // 氏名セルを2列に分割
+                    th.colSpan = 2;
                     th.className = "colspan-2";
                     headerRow.appendChild(th);
 
@@ -230,7 +223,6 @@
                     subHeaderRow.appendChild(subTh2);
                 }
 
-                // テーブル本体をクリア
                 table.innerHTML = '';
 
                 for (let day = 1; day <= monthDays; day++) {
@@ -317,7 +309,6 @@
                 generateTable(monthIndex);
             }
 
-            // 月のリンクをクリックしたときの処理
             const monthLinks = document.querySelectorAll('.month-links a');
             monthLinks.forEach((link, index) => {
                 link.addEventListener('click', (event) => {
@@ -326,7 +317,6 @@
                 });
             });
 
-            // 名前の追加ボタンのクリックイベント
             addNameButton.addEventListener('click', async () => {
                 const nameToAdd = nameInput.value.trim();
                 if (nameToAdd && !names.includes(nameToAdd)) {
@@ -337,7 +327,6 @@
                 }
             });
 
-            // 名前の削除ボタンのクリックイベント
             removeNameButton.addEventListener('click', async () => {
                 const nameToRemove = nameInput.value.trim();
                 if (names.includes(nameToRemove)) {
