@@ -351,24 +351,33 @@
             exportButton.addEventListener('click', () => {
     const wb = XLSX.utils.book_new();
     const ws_data = [];
-    const rows = table.parentNode.querySelectorAll('tr');
 
+    // ヘッダー行を作成
+    const header_row = ['日時'];
+    names.forEach(name => {
+        header_row.push('出勤', '退勤');
+    });
+    ws_data.push(header_row);
+
+    // データ行を生成
+    const rows = table.querySelectorAll('tr');
     rows.forEach(row => {
         const cells = row.querySelectorAll('th, td');
-        const row_data = [];
-        cells.forEach(cell => row_data.push(cell.innerText));
+        const row_data = [cells[0].innerText]; // 日時を追加
+        for (let i = 1; i < cells.length; i += 2) {
+            row_data.push(cells[i].innerText, cells[i + 1].innerText); // 出勤と退勤を追加
+        }
         ws_data.push(row_data);
     });
 
+    // Excel ワークシートにデータを追加
     const ws = XLSX.utils.aoa_to_sheet(ws_data);
-    const header = ['日時'];
-    names.forEach(name => {
-        header.push(`${name}_出勤`, `${name}_退勤`);
-    });
-    ws_data.unshift(header);
-    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+    XLSX.utils.book_append_sheet(wb, ws, '出勤退勤記録');
+
+    // ワークブックをファイルに保存
     XLSX.writeFile(wb, 'attendance.xlsx');
 });
+
 
         });
     </script>
