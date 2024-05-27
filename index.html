@@ -58,7 +58,7 @@
             min-width: 80px; /* セルの最小幅を指定 */
         }
         /* 奇数行に薄い青色を付ける */
-tbody tr:nth-child(even) {
+tbody td:nth-child(odd) {
     background-color:#FFF4DB;
 }
 /* 日付の列 */
@@ -69,7 +69,7 @@ td:first-child {
     </style>
 </head>
 <body>
-    <h1>帰宅時間記録</h1>
+    <h1>出退勤時間記録</h1>
     <div class="container">
         <div class="controls">
             <div class="button-group">
@@ -101,8 +101,11 @@ td:first-child {
             <table id="attendance-table">
                 <thead>
                     <tr>
-                        <th>日付</th>
+                        <th>日時</th>
                         <!-- 氏名を動的に生成 -->
+                    </tr>
+                    <tr id="name-row">
+                        <!-- 動的に氏名を生成 -->
                     </tr>
                 </thead>
                 <tbody>
@@ -181,7 +184,7 @@ td:first-child {
             const removeNameButton = document.getElementById('remove-name-button');
             const nameInput = document.getElementById('name-input');
             const table = document.getElementById('attendance-table').getElementsByTagName('tbody')[0];
-            const headerRow = table.parentNode.querySelector('thead tr');
+            const headerRow = document.getElementById('name-row');
             const exportButton = document.getElementById('export-button');
             const months = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
             
@@ -213,12 +216,12 @@ td:first-child {
                     let dateCell = row.insertCell(0);
                     dateCell.innerText = `${months[monthIndex]} ${i}日`;
 
-                    for (const name of names) {
+                    for (let j = 0; j < names.length; j++) {
                         let dataCell = row.insertCell();
                         dataCell.innerText = ''; // 空のセルを挿入
 
                         // Firestoreからデータを取得してセルに挿入
-                        const docRef = doc(db, 'attendance', name);
+                        const docRef = doc(db, 'attendance', names[j]);
                         const docSnap = await getDoc(docRef);
                         const date = `${months[monthIndex]} ${i}日`;
                         if (docSnap.exists() && docSnap.data()[date]) {
@@ -227,8 +230,8 @@ td:first-child {
                     }
                 }
             }
-            
-            table.addEventListener('click', (e) => {
+
+            table.parentElement.addEventListener('click', (e) => {
                 if (e.target.tagName === 'TD' && e.target.cellIndex > 0) {
                     if (selectedCells.includes(e.target)) {
                         e.target.style.backgroundColor = '';
@@ -244,7 +247,7 @@ td:first-child {
                 const currentTime = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
                 for (const cell of selectedCells) {
                     const date = cell.parentElement.cells[0].innerText;
-                    const name = headerRow.cells[cell.cellIndex].innerText;
+                    const name = headerRow.cells[cell.cellIndex - 1].innerText; // 名前の行のセルを参照
                     cell.innerText = currentTime;
                     await saveData(name, date, currentTime);
                 }
@@ -254,7 +257,7 @@ td:first-child {
             bulkAbsentButton.addEventListener('click', async () => {
                 for (const cell of selectedCells) {
                     const date = cell.parentElement.cells[0].innerText;
-                    const name = headerRow.cells[cell.cellIndex].innerText;
+                    const name = headerRow.cells[cell.cellIndex - 1].innerText; // 名前の行のセルを参照
                     cell.innerText = '欠席';
                     await saveData(name, date, '欠席');
                 }
@@ -264,7 +267,7 @@ td:first-child {
             bulkClearButton.addEventListener('click', async () => {
                 for (const cell of selectedCells) {
                     const date = cell.parentElement.cells[0].innerText;
-                    const name = headerRow.cells[cell.cellIndex].innerText;
+                    const name = headerRow.cells[cell.cellIndex - 1].innerText; // 名前の行のセルを参照
                     cell.innerText = '';
                     await saveData(name, date, '');
                 }
