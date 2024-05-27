@@ -61,10 +61,10 @@
 tbody tr:nth-child(even) {
     background-color:#FFF4DB;
 }
-/* 名前の列 */
+/* 日付の列 */
 th:first-child,
 td:first-child {
-    min-width: 150px; /* 8文字分の幅 */
+    min-width: 80px; /* 日付の幅 */
 }
     </style>
 </head>
@@ -101,12 +101,12 @@ td:first-child {
             <table id="attendance-table">
                 <thead>
                     <tr>
-                        <th>氏名</th>
-                        <!-- 日付を動的に生成 -->
+                        <th>日付</th>
+                        <!-- 氏名を動的に生成 -->
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- 名簿を動的に生成 -->
+                    <!-- 出退勤時間を動的に生成 -->
                 </tbody>
             </table>
         </div>
@@ -165,14 +165,13 @@ td:first-child {
 
         // Function to load names from Firestore
         async function loadNamesFromFirestore() {
-    const querySnapshot = await getDocs(collection(db, 'attendance'));
-    const names = [];
-    querySnapshot.forEach((doc) => {
-        names.push(doc.id);
-    });
-    return names;
-}
-
+            const querySnapshot = await getDocs(collection(db, 'attendance'));
+            const names = [];
+            querySnapshot.forEach((doc) => {
+                names.push(doc.id);
+            });
+            return names;
+        }
 
         document.addEventListener('DOMContentLoaded', async (event) => {
             const bulkTimeButton = document.getElementById('bulk-time-button');
@@ -182,57 +181,52 @@ td:first-child {
             const removeNameButton = document.getElementById('remove-name-button');
             const nameInput = document.getElementById('name-input');
             const table = document.getElementById('attendance-table').getElementsByTagName('tbody')[0];
-            const dateRow = table.parentNode.querySelector('thead tr');
+            const headerRow = table.parentNode.querySelector('thead tr');
             const exportButton = document.getElementById('export-button');
             const months = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
             
             let currentMonthIndex = new Date().getMonth();
-
-            const currentMonth = months[currentMonthIndex];
+            let currentMonth = months[currentMonthIndex];
 
             let names = await loadNamesFromFirestore();
-    let selectedCells = [];
+            let selectedCells = [];
 
-    // ページロード時にテーブルを生成
-generateTable(currentMonthIndex);
+            // ページロード時にテーブルを生成
+            generateTable(currentMonthIndex);
 
-async function generateTable(monthIndex) {
-    // 日付の行をクリア
-    dateRow.innerHTML = '';
-    const monthDays = new Date(new Date().getFullYear(), monthIndex + 1, 0).getDate(); // 今月の日数
-    for (let i = 0; i <= monthDays; i++) {
-        let th = document.createElement('th');
-        if (i === 0) {
-            th.innerText = '氏名';
-        } else {
-            th.innerText = `${months[monthIndex]} ${i}日`;
-        }
-        dateRow.appendChild(th);
-    }
+            async function generateTable(monthIndex) {
+                // ヘッダ行をクリア
+                headerRow.innerHTML = '';
+                const monthDays = new Date(new Date().getFullYear(), monthIndex + 1, 0).getDate(); // 今月の日数
+                for (const name of names) {
+                    let th = document.createElement('th');
+                    th.innerText = name;
+                    headerRow.appendChild(th);
+                }
 
-    // テーブルの初期化
-    table.innerHTML = '';
+                // テーブルの初期化
+                table.innerHTML = '';
 
-    // 各氏名ごとに行を生成
-    for (const name of names) {
-        let row = table.insertRow();
-        let nameCell = row.insertCell(0);
-        nameCell.innerText = name;
+                // 日付ごとに行を生成
+                for (let i = 1; i <= monthDays; i++) {
+                    let row = table.insertRow();
+                    let dateCell = row.insertCell(0);
+                    dateCell.innerText = `${months[monthIndex]} ${i}日`;
 
-        for (let i = 1; i <= monthDays; i++) {
-            let dateCell = row.insertCell(i);
-            dateCell.innerText = ''; // 空のセルを挿入
+                    for (const name of names) {
+                        let dataCell = row.insertCell();
+                        dataCell.innerText = ''; // 空のセルを挿入
 
-            // Firestoreからデータを取得してセルに挿入
-            const docRef = doc(db, 'attendance', name);
-            const docSnap = await getDoc(docRef);
-            const date = `${months[monthIndex]} ${i}日`;
-            if (docSnap.exists() && docSnap.data()[date]) {
-                dateCell.innerText = docSnap.data()[date];
+                        // Firestoreからデータを取得してセルに挿入
+                        const docRef = doc(db, 'attendance', name);
+                        const docSnap = await getDoc(docRef);
+                        const date = `${months[monthIndex]} ${i}日`;
+                        if (docSnap.exists() && docSnap.data()[date]) {
+                            dataCell.innerText = docSnap.data()[date];
+                        }
+                    }
+                }
             }
-        }
-    }
-}
             
             table.addEventListener('click', (e) => {
                 if (e.target.tagName === 'TD' && e.target.cellIndex > 0) {
@@ -249,8 +243,8 @@ async function generateTable(monthIndex) {
             bulkTimeButton.addEventListener('click', async () => {
                 const currentTime = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
                 for (const cell of selectedCells) {
-                    const name = cell.parentElement.cells[0].innerText;
-                    const date = dateRow.cells[cell.cellIndex].innerText;
+                    const date = cell.parentElement.cells[0].innerText;
+                    const name = headerRow.cells[cell.cellIndex].innerText;
                     cell.innerText = currentTime;
                     await saveData(name, date, currentTime);
                 }
@@ -259,8 +253,8 @@ async function generateTable(monthIndex) {
 
             bulkAbsentButton.addEventListener('click', async () => {
                 for (const cell of selectedCells) {
-                    const name = cell.parentElement.cells[0].innerText;
-                    const date = dateRow.cells[cell.cellIndex].innerText;
+                    const date = cell.parentElement.cells[0].innerText;
+                    const name = headerRow.cells[cell.cellIndex].innerText;
                     cell.innerText = '欠席';
                     await saveData(name, date, '欠席');
                 }
@@ -269,8 +263,8 @@ async function generateTable(monthIndex) {
 
             bulkClearButton.addEventListener('click', async () => {
                 for (const cell of selectedCells) {
-                    const name = cell.parentElement.cells[0].innerText;
-                    const date = dateRow.cells[cell.cellIndex].innerText;
+                    const date = cell.parentElement.cells[0].innerText;
+                    const name = headerRow.cells[cell.cellIndex].innerText;
                     cell.innerText = '';
                     await saveData(name, date, '');
                 }
@@ -282,10 +276,10 @@ async function generateTable(monthIndex) {
                 selectedCells = [];
             }
 
-           function updateMonth(monthIndex) {
-    currentMonthIndex = monthIndex; // currentMonthIndex の再宣言ではなく、値の変更
-    generateTable(monthIndex); // テーブルを再生成する際に月のインデックスを渡す
-}
+            function updateMonth(monthIndex) {
+                currentMonthIndex = monthIndex; // currentMonthIndex の再宣言ではなく、値の変更
+                generateTable(monthIndex); // テーブルを再生成する際に月のインデックスを渡す
+            }
 
             // 月のリンクをクリックしたときの処理
             const monthLinks = document.querySelectorAll('.month-links a');
@@ -297,29 +291,29 @@ async function generateTable(monthIndex) {
             });
 
             // 名前の追加ボタンのクリックイベント
-addNameButton.addEventListener('click', async () => {
-    const nameToAdd = nameInput.value.trim();
-    if (nameToAdd && !names.includes(nameToAdd)) {
-        names.push(nameToAdd); // 名前を追加
-        await addNameToFirestore(nameToAdd); // Firestoreにも反映
-        generateTable(currentMonthIndex); // テーブルを再生成
-        nameInput.value = ''; // 入力欄をクリア
-    }
-});
+            addNameButton.addEventListener('click', async () => {
+                const nameToAdd = nameInput.value.trim();
+                if (nameToAdd && !names.includes(nameToAdd)) {
+                    names.push(nameToAdd); // 名前を追加
+                    await addNameToFirestore(nameToAdd); // Firestoreにも反映
+                    generateTable(currentMonthIndex); // テーブルを再生成
+                    nameInput.value = ''; // 入力欄をクリア
+                }
+            });
 
-// 名前の削除ボタンのクリックイベント
-removeNameButton.addEventListener('click', async () => {
-    const nameToRemove = nameInput.value.trim();
-    if (names.includes(nameToRemove)) {
-        const index = names.indexOf(nameToRemove);
-        if (index > -1) {
-            names.splice(index, 1); // 名前を削除
-            await removeNameFromFirestore(nameToRemove); // Firestoreからも削除
-            generateTable(currentMonthIndex); // テーブルを再生成
-            nameInput.value = ''; // 入力欄をクリア
-        }
-    }
-});
+            // 名前の削除ボタンのクリックイベント
+            removeNameButton.addEventListener('click', async () => {
+                const nameToRemove = nameInput.value.trim();
+                if (names.includes(nameToRemove)) {
+                    const index = names.indexOf(nameToRemove);
+                    if (index > -1) {
+                        names.splice(index, 1); // 名前を削除
+                        await removeNameFromFirestore(nameToRemove); // Firestoreからも削除
+                        generateTable(currentMonthIndex); // テーブルを再生成
+                        nameInput.value = ''; // 入力欄をクリア
+                    }
+                }
+            });
 
             exportButton.addEventListener('click', () => {
                 const wb = XLSX.utils.book_new();
