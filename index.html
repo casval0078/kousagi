@@ -354,11 +354,17 @@
                 const rows = table.parentNode.querySelectorAll('tr');
 
                 rows.forEach(row => {
-                    const cells = row.querySelectorAll('th, td');
-                    const row_data = [];
-                    cells.forEach(cell => row_data.push(cell.innerText));
-                    ws_data.push(row_data);
-                });
+    const cells = row.querySelectorAll('th, td');
+    const row_data = [];
+    // 日時のセルと同じ行に出勤と退勤のセルを追加する
+    row_data.push(cells[0].innerText); // 日時のセル
+    for (let i = 1; i < cells.length; i += 2) {
+        row_data.push(cells[i].innerText); // 出勤のセル
+        row_data.push(cells[i + 1].innerText); // 退勤のセル
+    }
+    ws_data.push(row_data);
+});
+
 
                 const ws = XLSX.utils.aoa_to_sheet(ws_data);
                 XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
