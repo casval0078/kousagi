@@ -21,7 +21,7 @@
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
-            margin-top: 0px;
+            margin-top: 75px;
 	　　justify-content: flex-end; /* 右端に寄せる */
             top: 0;
             right: 20px;
@@ -143,24 +143,22 @@
         const db = getFirestore(app);
 
         async function saveData(name, date, type, value) {
-    try {
-        const docRef = doc(db, 'attendance', name);
-        const docSnap = await getDoc(docRef);
-        const fieldName = `${date.replace('/', '-')}_${type}`; // スラッシュをダッシュに置き換える
-        if (docSnap.exists()) {
-            await updateDoc(docRef, {
-                [fieldName]: value
-            });
-        } else {
-            await setDoc(docRef, {
-                [fieldName]: value
-            });
+            try {
+                const docRef = doc(db, 'attendance', name);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    await updateDoc(docRef, {
+                        [`${date}_${type}`]: value
+                    });
+                } else {
+                    await setDoc(docRef, {
+                        [`${date}_${type}`]: value
+                    });
+                }
+            } catch (e) {
+                console.error("Error saving document: ", e);
+            }
         }
-    } catch (e) {
-        console.error("Error saving document: ", e);
-    }
-}
-
 
         async function addNameToFirestore(name) {
             try {
@@ -209,57 +207,54 @@
             generateTable(currentMonthIndex);
 
             async function generateTable(monthIndex) {
-    while (headerRow.cells.length > 1) {
-        headerRow.deleteCell(-1);
-    }
-    while (subHeaderRow.cells.length > 0) {
-        subHeaderRow.deleteCell(-1);
-    }
-    const monthDays = new Date(new Date().getFullYear(), monthIndex + 1, 0).getDate();
-    for (const name of names) {
-        let th = document.createElement('th');
-        th.innerText = name;
-        th.colSpan = 2;
-        th.className = "colspan-2";
-        headerRow.appendChild(th);
-
-        // 指導員ごとに出勤と退勤のセルを結合する
-        let subTh = document.createElement('th');
-        subTh.innerText = '出勤';
-        subHeaderRow.appendChild(subTh);
-
-        subTh = document.createElement('th');
-        subTh.innerText = '退勤';
-        subHeaderRow.appendChild(subTh);
-    }
-
-    table.innerHTML = '';
-
-    for (let day = 1; day <= monthDays; day++) {
-        let date = `${monthIndex + 1}/${day}`;
-        let row = table.insertRow();
-        let dateCell = row.insertCell();
-        dateCell.innerText = date;
-
-        for (const name of names) {
-            let inCell = row.insertCell();
-            let outCell = row.insertCell();
-
-            const docSnap = await getDoc(doc(db, 'attendance', name));
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                const fieldNameIn = `${date.replace('/', '-').replace('月', '')}_in`; 
-                const fieldNameOut = `${date.replace('/', '-').replace('月', '')}_out`; 
-                if (data[fieldNameIn]) {
-                    inCell.innerText = data[fieldNameIn];
+                while (headerRow.cells.length > 1) {
+                    headerRow.deleteCell(-1);
                 }
-                if (data[fieldNameOut]) {
-                    outCell.innerText = data[fieldNameOut];
+                while (subHeaderRow.cells.length > 0) {
+                    subHeaderRow.deleteCell(-1);
+                }
+                const monthDays = new Date(new Date().getFullYear(), monthIndex + 1, 0).getDate();
+                for (const name of names) {
+                    let th = document.createElement('th');
+                    th.innerText = name;
+                    th.colSpan = 2;
+                    th.className = "colspan-2";
+                    headerRow.appendChild(th);
+
+                    let subTh1 = document.createElement('th');
+                    subTh1.innerText = '出勤';
+                    subHeaderRow.appendChild(subTh1);
+
+                    let subTh2 = document.createElement('th');
+                    subTh2.innerText = '退勤';
+                    subHeaderRow.appendChild(subTh2);
+                }
+
+                table.innerHTML = '';
+
+                for (let day = 1; day <= monthDays; day++) {
+                    let date = `${monthIndex + 1}/${day}`;
+                    let row = table.insertRow();
+                    let dateCell = row.insertCell();
+                    dateCell.innerText = date;
+
+                    for (const name of names) {
+                        let inCell = row.insertCell();
+                        let outCell = row.insertCell();
+
+                        const docSnap = await getDoc(doc(db, 'attendance', name));
+                        if (docSnap.exists()) {
+                            const data = docSnap.data();
+                            if (data[`${date}_in`]) {
+                                inCell.innerText = data[`${date}_in`];
+                            }
+                            if (data[`${date}_out`]) {
+                                outCell.innerText = data[`${date}_out`];
+                            }
+                        }
+                    }
                 }
             }
-        }
-    }
-    }
 
             table.parentElement.addEventListener('click', (e) => {
                 if (e.target.tagName === 'TD' && e.target.cellIndex > 0) {
@@ -350,28 +345,21 @@
             });
 
             exportButton.addEventListener('click', () => {
-    const wb = XLSX.utils.book_new();
-    const ws_data = [];
-    const rows = table.parentNode.querySelectorAll('tr');
+                const wb = XLSX.utils.book_new();
+                const ws_data = [];
+                const rows = table.parentNode.querySelectorAll('tr');
 
-    rows.forEach(row => {
-        const cells = row.querySelectorAll('th, td');
-        const row_data = [];
-        cells.forEach(cell => row_data.push(cell.innerText));
-        ws_data.push(row_data);
-    });
+                rows.forEach(row => {
+                    const cells = row.querySelectorAll('th, td');
+                    const row_data = [];
+                    cells.forEach(cell => row_data.push(cell.innerText));
+                    ws_data.push(row_data);
+                });
 
-    // 指導員ごとに出勤と退勤のセルを結合する
-    for (let i = 2; i < ws_data[0].length; i += 2) {
-        const merge = { s: { r: 0, c: i }, e: { r: 0, c: i + 1 } };
-        ws_data[0].splice(i, 0, { v: '出勤', t: 's', s: { alignment: { horizontal: 'center' } } }, { v: '退勤', t: 's', s: { alignment: { horizontal: 'center' } } });
-        ws_data[0].splice(i + 2, 0, merge);
-    }
-
-    const ws = XLSX.utils.aoa_to_sheet(ws_data);
-    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
-    XLSX.writeFile(wb, 'attendance.xlsx');
-});
+                const ws = XLSX.utils.aoa_to_sheet(ws_data);
+                XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+                XLSX.writeFile(wb, 'attendance.xlsx');
+            });
         });
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
