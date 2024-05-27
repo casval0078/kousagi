@@ -353,24 +353,23 @@
     const ws_data = [];
 
     // ヘッダーロウを生成する
-    const header_row = ['日時'];
+    const header_row = ['', '']; // 空のセルを追加
     names.forEach(name => {
-        header_row.push(name, ''); // 出勤と退勤のセルを追加
+        header_row.push('出勤', '退勤'); // 出勤と退勤のセルを追加
     });
     ws_data.push(header_row);
     
-    // データを取得してシートに書き込む
+    // 出勤退勤以外のデータを取得してシートに書き込む
     const rows = table.querySelectorAll('tr');
-    rows.forEach(row => {
-        const cells = row.querySelectorAll('th, td');
-        const row_data = [cells[0].innerText];
-        for (let i = 1; i < cells.length; i++) {
-            row_data.push(cells[i].innerText);
-            if (i % 2 === 0) { // 偶数番目のセルの後に空のセルを追加する
-                row_data.push('');
+    rows.forEach((row, index) => {
+        if (index >= 2) { // 3行目からデータを取得する
+            const cells = row.querySelectorAll('th, td');
+            const row_data = [cells[0].innerText];
+            for (let i = 1; i < cells.length; i++) {
+                row_data.push(cells[i].innerText);
             }
+            ws_data.push(row_data);
         }
-        ws_data.push(row_data);
     });
     
     const ws = XLSX.utils.aoa_to_sheet(ws_data);
