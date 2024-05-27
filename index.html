@@ -362,14 +362,20 @@
     // 出勤退勤以外のデータを取得してシートに書き込む
     const rows = table.querySelectorAll('tr');
     rows.forEach((row, index) => {
-        if (index >= 2) { // 3行目からデータを取得する
-            const cells = row.querySelectorAll('th, td');
-            const row_data = [cells[0].innerText];
-            for (let i = 1; i < cells.length; i++) {
-                row_data.push(cells[i].innerText);
+        const cells = row.querySelectorAll('th, td');
+        const row_data = [];
+        cells.forEach((cell, idx) => {
+            if (index === 0 && idx === 1) {
+                row_data.push('', '', '氏名', '', ...names); // 氏名を追加
+            } else if (index === 1 && idx >= 1) {
+                row_data.push('', idx % 2 === 1 ? '出勤' : '退勤'); // 出勤と退勤を交互に追加
+            } else if (index >= 2) {
+                row_data.push(cell.innerText);
+            } else {
+                row_data.push('');
             }
-            ws_data.push(row_data);
-        }
+        });
+        ws_data.push(row_data);
     });
     
     const ws = XLSX.utils.aoa_to_sheet(ws_data);
