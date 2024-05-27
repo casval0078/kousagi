@@ -143,22 +143,24 @@
         const db = getFirestore(app);
 
         async function saveData(name, date, type, value) {
-            try {
-                const docRef = doc(db, 'attendance', name);
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    await updateDoc(docRef, {
-                        [`${date}_${type}`]: value
-                    });
-                } else {
-                    await setDoc(docRef, {
-                        [`${date}_${type}`]: value
-                    });
-                }
-            } catch (e) {
-                console.error("Error saving document: ", e);
-            }
+    try {
+        const docRef = doc(db, 'attendance', name);
+        const docSnap = await getDoc(docRef);
+        const fieldName = `${date.replace('/', '-')}_${type}`; // スラッシュをダッシュに置き換える
+        if (docSnap.exists()) {
+            await updateDoc(docRef, {
+                [fieldName]: value
+            });
+        } else {
+            await setDoc(docRef, {
+                [fieldName]: value
+            });
         }
+    } catch (e) {
+        console.error("Error saving document: ", e);
+    }
+}
+
 
         async function addNameToFirestore(name) {
             try {
