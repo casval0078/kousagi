@@ -58,14 +58,21 @@
             min-width: 80px; /* セルの最小幅を指定 */
         }
         /* 奇数行に薄い青色を付ける */
-tbody td:nth-child(odd) {
-    background-color:#FFF4DB;
-}
-/* 日付の列 */
-th:first-child,
-td:first-child {
-    min-width: 80px; /* 日付の幅 */
-}
+        tbody td:nth-child(odd) {
+            background-color: #FFF4DB;
+        }
+        /* 日付の列 */
+        th:first-child,
+        td:first-child {
+            min-width: 50px; /* 日付の幅 */
+        }
+        th.colspan-2 {
+            text-align: center;
+            border-right: none; /* Right border of the first cell in the colspan */
+        }
+        th.colspan-2 + th {
+            border-left: none; /* Left border of the second cell in the colspan */
+        }
     </style>
 </head>
 <body>
@@ -101,11 +108,11 @@ td:first-child {
             <table id="attendance-table">
                 <thead>
                     <tr>
-                        <th>日時</th>
+                        <th rowspan="2">日時</th>
                         <!-- 氏名を動的に生成 -->
                     </tr>
-                    <tr id="name-row">
-                        <!-- 動的に氏名を生成 -->
+                    <tr>
+                        <!-- 出勤、退勤の列ヘッダーを動的に生成 -->
                     </tr>
                 </thead>
                 <tbody>
@@ -137,11 +144,11 @@ td:first-child {
         const db = getFirestore(app);
 
         // Functions to save data to Firestore
-        async function saveData(name, date, value) {
+        async function saveData(name, date, type, value) {
             try {
                 const docRef = doc(db, 'attendance', name);
                 await updateDoc(docRef, {
-                    [date]: value
+                    [`${date}_${type}`]: value
                 });
             } catch (e) {
                 console.error("Error saving document: ", e);
@@ -184,7 +191,8 @@ td:first-child {
             const removeNameButton = document.getElementById('remove-name-button');
             const nameInput = document.getElementById('name-input');
             const table = document.getElementById('attendance-table').getElementsByTagName('tbody')[0];
-            const headerRow = document.getElementById('name-row');
+            const headerRow = document.getElementById('attendance-table').getElementsByTagName('thead')[0].rows[0];
+            const subHeaderRow = document.getElementById('attendance-table').getElementsByTagName('thead')[0].rows[1];
             const exportButton = document.getElementById('export-button');
             const months = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
             
@@ -199,33 +207,51 @@ td:first-child {
 
             async function generateTable(monthIndex) {
                 // ヘッダ行をクリア
-                headerRow.innerHTML = '';
+                while (headerRow.cells.length > 1) {
+                    headerRow.deleteCell(-1);
+                }
+                while (subHeaderRow.cells.length > 1) {
+                    subHeaderRow.deleteCell(-1);
+                }
                 const monthDays = new Date(new Date().getFullYear(), monthIndex + 1, 0).getDate(); // 今月の日数
                 for (const name of names) {
                     let th = document.createElement('th');
                     th.innerText = name;
+                    th.colSpan = 2; // 氏名セルを2列に分割
+                    th.className = "colspan-2";
                     headerRow.appendChild(th);
+
+                    let subTh1 = document.createElement('th');
+                    subTh1.innerText = '出勤';
+                    subHeaderRow.appendChild(subTh1);
+
+                    let subTh2 = document.createElement('th');
+                    subTh2.innerText = '退勤';
+                    subHeaderRow.appendChild(subTh2);
                 }
 
-                // テーブルの初期化
+                // テーブル本体をクリア
                 table.innerHTML = '';
 
-                // 日付ごとに行を生成
-                for (let i = 1; i <= monthDays; i++) {
+                for (let day = 1; day <= monthDays; day++) {
+                    let date = `${monthIndex + 1}/${day}`;
                     let row = table.insertRow();
-                    let dateCell = row.insertCell(0);
-                    dateCell.innerText = `${months[monthIndex]} ${i}日`;
+                    let dateCell = row.insertCell();
+                    dateCell.innerText = date;
 
-                    for (let j = 0; j < names.length; j++) {
-                        let dataCell = row.insertCell();
-                        dataCell.innerText = ''; // 空のセルを挿入
+                    for (const name of names) {
+                        let inCell = row.insertCell();
+                        let outCell = row.insertCell();
 
-                        // Firestoreからデータを取得してセルに挿入
-                        const docRef = doc(db, 'attendance', names[j]);
-                        const docSnap = await getDoc(docRef);
-                        const date = `${months[monthIndex]} ${i}日`;
-                        if (docSnap.exists() && docSnap.data()[date]) {
-                            dataCell.innerText = docSnap.data()[date];
+                        const docSnap = await getDoc(doc(db, 'attendance', name));
+                        if (docSnap.exists()) {
+                            const data = docSnap.data();
+                            if (data[`${date}_in`]) {
+                                inCell.innerText = data[`${date}_in`];
+                            }
+                            if (data[`${date}_out`]) {
+                                outCell.innerText = data[`${date}_out`];
+                            }
                         }
                     }
                 }
@@ -247,9 +273,11 @@ td:first-child {
                 const currentTime = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
                 for (const cell of selectedCells) {
                     const date = cell.parentElement.cells[0].innerText;
-                    const name = headerRow.cells[cell.cellIndex - 1].innerText; // 名前の行のセルを参照
+                    const nameIndex = Math.floor((cell.cellIndex - 1) / 2);
+                    const name = headerRow.cells[nameIndex + 1].innerText;
+                    const type = cell.cellIndex % 2 === 1 ? 'in' : 'out';
                     cell.innerText = currentTime;
-                    await saveData(name, date, currentTime);
+                    await saveData(name, date, type, currentTime);
                 }
                 clearSelection();
             });
@@ -257,9 +285,11 @@ td:first-child {
             bulkAbsentButton.addEventListener('click', async () => {
                 for (const cell of selectedCells) {
                     const date = cell.parentElement.cells[0].innerText;
-                    const name = headerRow.cells[cell.cellIndex - 1].innerText; // 名前の行のセルを参照
+                    const nameIndex = Math.floor((cell.cellIndex - 1) / 2);
+                    const name = headerRow.cells[nameIndex + 1].innerText;
+                    const type = cell.cellIndex % 2 === 1 ? 'in' : 'out';
                     cell.innerText = '欠席';
-                    await saveData(name, date, '欠席');
+                    await saveData(name, date, type, '欠席');
                 }
                 clearSelection();
             });
@@ -267,9 +297,11 @@ td:first-child {
             bulkClearButton.addEventListener('click', async () => {
                 for (const cell of selectedCells) {
                     const date = cell.parentElement.cells[0].innerText;
-                    const name = headerRow.cells[cell.cellIndex - 1].innerText; // 名前の行のセルを参照
+                    const nameIndex = Math.floor((cell.cellIndex - 1) / 2);
+                    const name = headerRow.cells[nameIndex + 1].innerText;
+                    const type = cell.cellIndex % 2 === 1 ? 'in' : 'out';
                     cell.innerText = '';
-                    await saveData(name, date, '');
+                    await saveData(name, date, type, '');
                 }
                 clearSelection();
             });
@@ -280,8 +312,9 @@ td:first-child {
             }
 
             function updateMonth(monthIndex) {
-                currentMonthIndex = monthIndex; // currentMonthIndex の再宣言ではなく、値の変更
-                generateTable(monthIndex); // テーブルを再生成する際に月のインデックスを渡す
+                currentMonthIndex = monthIndex;
+                currentMonth = months[monthIndex];
+                generateTable(monthIndex);
             }
 
             // 月のリンクをクリックしたときの処理
@@ -297,10 +330,10 @@ td:first-child {
             addNameButton.addEventListener('click', async () => {
                 const nameToAdd = nameInput.value.trim();
                 if (nameToAdd && !names.includes(nameToAdd)) {
-                    names.push(nameToAdd); // 名前を追加
-                    await addNameToFirestore(nameToAdd); // Firestoreにも反映
-                    generateTable(currentMonthIndex); // テーブルを再生成
-                    nameInput.value = ''; // 入力欄をクリア
+                    names.push(nameToAdd);
+                    await addNameToFirestore(nameToAdd);
+                    generateTable(currentMonthIndex);
+                    nameInput.value = '';
                 }
             });
 
@@ -308,13 +341,10 @@ td:first-child {
             removeNameButton.addEventListener('click', async () => {
                 const nameToRemove = nameInput.value.trim();
                 if (names.includes(nameToRemove)) {
-                    const index = names.indexOf(nameToRemove);
-                    if (index > -1) {
-                        names.splice(index, 1); // 名前を削除
-                        await removeNameFromFirestore(nameToRemove); // Firestoreからも削除
-                        generateTable(currentMonthIndex); // テーブルを再生成
-                        nameInput.value = ''; // 入力欄をクリア
-                    }
+                    names = names.filter(name => name !== nameToRemove);
+                    await removeNameFromFirestore(nameToRemove);
+                    generateTable(currentMonthIndex);
+                    nameInput.value = '';
                 }
             });
 
