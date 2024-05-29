@@ -76,14 +76,20 @@
             position: sticky;
             left: 0;
             background-color: #FEE3D7;
-            z-index: 1;
+            z-index: 2; /* 名前列より前に表示 */
         }
-        th.colspan-2 {
-            text-align: center;
-            border-right: none;
+        th.colspan-2,
+        th.colspan-2 + th {
+            position: sticky;
+            top: 0;
+            background-color: white;
+            z-index: 1; /* 固定するためのZインデックス */
         }
         th.colspan-2 + th {
-            border-left: none;
+            z-index: 1;
+        }
+        th, td {
+            z-index: 0; /* 通常のセルはZインデックスを0に設定 */
         }
     </style>
 </head>
@@ -219,8 +225,7 @@
             const months = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
             
             let currentMonthIndex = new Date().getMonth();
-            let currentYear = new Date().getFullYear();
-            yearSelect.value = currentYear;
+            let currentYear = parseInt(yearSelect.value);
             let currentMonth = months[currentMonthIndex];
 
             let names = await loadNamesFromFirestore();
