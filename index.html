@@ -212,80 +212,90 @@
             return names;
         }
 
-        document.addEventListener('DOMContentLoaded', async (event) => {
-            const bulkTimeButton = document.getElementById('bulk-time-button');
-            const bulkAbsentButton = document.getElementById('bulk-absent-button');
-            const bulkClearButton = document.getElementById('bulk-clear-button');
-            const addNameButton = document.getElementById('add-name-button');
-            const removeNameButton = document.getElementById('remove-name-button');
-            const nameInput = document.getElementById('name-input');
-            const table = document.getElementById('attendance-table').getElementsByTagName('tbody')[0];
-            const headerRow = document.getElementById('attendance-table').getElementsByTagName('thead')[0].rows[0];
-            const subHeaderRow = document.getElementById('attendance-table').getElementsByTagName('thead')[0].rows[1];
-            const exportButton = document.getElementById('export-button');
-            const months = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
+document.addEventListener('DOMContentLoaded', async (event) => {
+    const bulkTimeButton = document.getElementById('bulk-time-button');
+    const bulkAbsentButton = document.getElementById('bulk-absent-button');
+    const bulkClearButton = document.getElementById('bulk-clear-button');
+    const addNameButton = document.getElementById('add-name-button');
+    const removeNameButton = document.getElementById('remove-name-button');
+    const nameInput = document.getElementById('name-input');
+    const table = document.getElementById('attendance-table').getElementsByTagName('tbody')[0];
+    const headerRow = document.getElementById('attendance-table').getElementsByTagName('thead')[0].rows[0];
+    const subHeaderRow = document.getElementById('attendance-table').getElementsByTagName('thead')[0].rows[1];
+    const exportButton = document.getElementById('export-button');
+    const months = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
 
-            let currentMonthIndex = new Date().getMonth();
-            let currentMonth = months[currentMonthIndex];
+    let currentMonthIndex = new Date().getMonth();
+    let currentMonth = months[currentMonthIndex];
 
-            let names = await loadNamesFromFirestore();
-            let selectedCells = [];
+    let names = await loadNamesFromFirestore();
+    let selectedCells = [];
 
-            generateTable(currentMonthIndex);
+    generateTable(currentMonthIndex);
 
-            async function generateTable(monthIndex) {
-                while (headerRow.cells.length > 1) {
-                    headerRow.deleteCell(-1);
-                }
-                while (subHeaderRow.cells.length > 0) {
-                    subHeaderRow.deleteCell(-1);
-                }
-                const monthDays = new Date(new Date().getFullYear(), monthIndex + 1, 0).getDate();
-                for (const name of names) {
-                    let th = document.createElement('th');
-                    th.innerText = name;
-                    th.colSpan = 2;
-                    th.className = "colspan-2";
-                    headerRow.appendChild(th);
+    async function generateTable(monthIndex) {
+        while (headerRow.cells.length > 1) {
+            headerRow.deleteCell(-1);
+        }
+        while (subHeaderRow.cells.length > 0) {
+            subHeaderRow.deleteCell(-1);
+        }
+        const monthDays = new Date(new Date().getFullYear(), monthIndex + 1, 0).getDate();
+        for (const name of names) {
+            let th = document.createElement('th');
+            th.innerText = name;
+            th.colSpan = 3; // 日付と出退勤の3列分
+            th.className = "colspan-3";
+            headerRow.appendChild(th);
 
-                    let subTh1 = document.createElement('th');
-                    subTh1.innerText = '出勤';
-                    subTh1.className = "sticky-second-row";
-                    subHeaderRow.appendChild(subTh1);
+            let subTh1 = document.createElement('th');
+            subTh1.innerText = '年';
+            subTh1.className = "sticky-second-row";
+            subHeaderRow.appendChild(subTh1);
 
-                    let subTh2 = document.createElement('th');
-                    subTh2.innerText = '退勤';
-                    subTh2.className = "sticky-second-row";
-                    subHeaderRow.appendChild(subTh2);
-                }
+            let subTh2 = document.createElement('th');
+            subTh2.innerText = '出勤';
+            subTh2.className = "sticky-second-row";
+            subHeaderRow.appendChild(subTh2);
 
-                table.innerHTML = '';
+            let subTh3 = document.createElement('th');
+            subTh3.innerText = '退勤';
+            subTh3.className = "sticky-second-row";
+            subHeaderRow.appendChild(subTh3);
+        }
 
-                for (let day = 1; day <= monthDays; day++) {
-                    let date = `${monthIndex + 1}/${day}`;
-                    let row = table.insertRow();
-                    let dateCell = row.insertCell();
-                    dateCell.innerText = date;
+        table.innerHTML = '';
 
-                    for (const name of names) {
-                        let inCell = row.insertCell();
-                        let outCell = row.insertCell();
+        for (let day = 1; day <= monthDays; day++) {
+            let date = `${new Date().getFullYear()}-${monthIndex + 1}-${day}`;
+            let row = table.insertRow();
+            let dateCell = row.insertCell();
+            dateCell.innerText = date;
 
-                        const docSnap = await getDoc(doc(db, 'attendance', name));
-                        if (docSnap.exists()) {
-                            const data = docSnap.data();
-                            const fieldNameIn = `${date.replace('/', '-').replace('月', '')}_in`;
-                            const fieldNameOut = `${date.replace('/', '-').replace('月', '')}_out`;
-                            if (data[fieldNameIn]) {
-                                inCell.innerText = data[fieldNameIn];
-                            }
-                            if (data[fieldNameOut]) {
-                                outCell.innerText = data[fieldNameOut];
-                            }
-                        }
+            for (const name of names) {
+                let yearCell = row.insertCell();
+                let inCell = row.insertCell();
+                let outCell = row.insertCell();
+
+                const docSnap = await getDoc(doc(db, 'attendance', name));
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    const fieldNameYear = `${date}_${name}_year`;
+                    const fieldNameIn = `${date}_${name}_in`;
+                    const fieldNameOut = `${date}_${name}_out`;
+                    if (data[fieldNameYear]) {
+                        yearCell.innerText = data[fieldNameYear];
+                    }
+                    if (data[fieldNameIn]) {
+                        inCell.innerText = data[fieldNameIn];
+                    }
+                    if (data[fieldNameOut]) {
+                        outCell.innerText = data[fieldNameOut];
                     }
                 }
             }
+        }
+    }
 
             table.parentElement.addEventListener('click', (e) => {
                 if (e.target.tagName === 'TD' && e.target.cellIndex > 0) {
