@@ -254,12 +254,12 @@ document.addEventListener('DOMContentLoaded', async (event) => {
             subHeaderRow.appendChild(subTh1);
 
             let subTh2 = document.createElement('th');
-            subTh2.innerText = '出勤';
+            subTh2.innerText = '月';
             subTh2.className = "sticky-second-row";
             subHeaderRow.appendChild(subTh2);
 
             let subTh3 = document.createElement('th');
-            subTh3.innerText = '退勤';
+            subTh3.innerText = '日';
             subTh3.className = "sticky-second-row";
             subHeaderRow.appendChild(subTh3);
         }
@@ -267,30 +267,31 @@ document.addEventListener('DOMContentLoaded', async (event) => {
         table.innerHTML = '';
 
         for (let day = 1; day <= monthDays; day++) {
-            let date = `${new Date().getFullYear()}-${monthIndex + 1}-${day}`;
+            let year = new Date().getFullYear();
+            let date = `${year}-${monthIndex + 1}-${day}`;
             let row = table.insertRow();
             let dateCell = row.insertCell();
             dateCell.innerText = date;
 
             for (const name of names) {
                 let yearCell = row.insertCell();
-                let inCell = row.insertCell();
-                let outCell = row.insertCell();
+                let monthCell = row.insertCell();
+                let dayCell = row.insertCell();
 
                 const docSnap = await getDoc(doc(db, 'attendance', name));
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     const fieldNameYear = `${date}_${name}_year`;
-                    const fieldNameIn = `${date}_${name}_in`;
-                    const fieldNameOut = `${date}_${name}_out`;
+                    const fieldNameMonth = `${date}_${name}_month`;
+                    const fieldNameDay = `${date}_${name}_day`;
                     if (data[fieldNameYear]) {
                         yearCell.innerText = data[fieldNameYear];
                     }
-                    if (data[fieldNameIn]) {
-                        inCell.innerText = data[fieldNameIn];
+                    if (data[fieldNameMonth]) {
+                        monthCell.innerText = data[fieldNameMonth];
                     }
-                    if (data[fieldNameOut]) {
-                        outCell.innerText = data[fieldNameOut];
+                    if (data[fieldNameDay]) {
+                        dayCell.innerText = data[fieldNameDay];
                     }
                 }
             }
