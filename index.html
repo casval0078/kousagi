@@ -3,99 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>出退勤時間記録</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>出勤管理システム</title>
     <style>
         body {
             font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
             margin: 0;
             padding: 0;
-            background-color: #FEE3D7;
-        }
-        .button-group {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .month-links {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 75px;
-            justify-content: flex-end; /* 右端に寄せる */
-            top: 0;
-            right: 20px;
-            padding: 10px;
-            z-index: 1000;
-        }
-        .month-links a {
-            margin-bottom: 5px;
-        }
-        .year-select {
-            margin-left: 10px;
-        }
-        .container {
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
             padding: 20px;
-            background-color: white;
-            margin-top: 50px; /* リンクの下に余白を設定 */
         }
-        .name-management {
-            margin-top: 20px;
-            align-self: flex-end;
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .name-input-container, .bulk-action-buttons {
             display: flex;
-            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
         }
-        .export-button {
-            margin-top: 20px;
+        .name-input-container input, .name-input-container button,
+        .bulk-action-buttons button, .month-links a, .year-select {
+            margin: 0 5px;
         }
         .table-container {
-            width: 100%;
             overflow-x: auto;
-            margin-top: 20px;
-            max-height: calc(100vh - 150px); /* 画面の高さからリンクと余白分を引く */
+            max-height: 60vh;
         }
         table {
-            border-collapse: collapse;
             width: 100%;
+            border-collapse: collapse;
         }
         th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
+            padding: 10px;
             text-align: center;
-            min-width: 80px;
+            border: 1px solid #ddd;
         }
-        tbody td:nth-child(odd) {
-            background-color: #FFF4DB;
-        }
-        th:first-child,
-        td:first-child {
-            min-width: 50px;
-            position: sticky;
-            left: 0;
-            background-color: #F0F0F0; /* 薄いグレー */
-            z-index: 3; /* 名前列より前に表示 */
-        }
-        th.colspan-2,
-        th.colspan-2 + th {
+        th.sticky {
             position: sticky;
             top: 0;
-            background-color: #F0F0F0; /* 薄いグレー */
-            z-index: 2; /* 固定するためのZインデックス */
-        }
-        th.colspan-2 + th {
+            background-color: #eee;
             z-index: 2;
         }
-        th, td {
-            z-index: 1; /* 通常のセルはZインデックスを1に設定 */
-        }
-        th.sticky-second-row {
+        .sticky-second-row th {
             position: sticky;
-            top: 24px; /* 1行目の高さ分 */
-            background-color: #FFF;
+            top: 40px; /* 調整 */
+            background-color: #ddd;
             z-index: 1;
+        }
+        .export-button {
+            display: block;
+            margin: 20px auto;
         }
     </style>
 </head>
