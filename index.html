@@ -11,41 +11,43 @@
             padding: 0;
             background-color: #FEE3D7;
         }
-        .button-group {
+        .control-group {
             display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
+            justify-content: center; /* 中央に配置 */
+            margin-bottom: 20px; /* コントロール間の間隔を追加 */
+        }
+        .year-and-months {
+            display: flex;
+            align-items: center; /* 年と月リンクを垂直方向に中央揃え */
+        }
+        .year-select {
+            margin-right: 10px; /* 年のドロップダウンと月リンクとの間隔を調整 */
         }
         .month-links {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 75px;
-            justify-content: flex-end; /* 右端に寄せる */
-            top: 0;
-            right: 20px;
-            padding: 10px;
-            z-index: 1000;
+            gap: 10px; /* 月リンク間の間隔 */
+            margin-bottom: 20px; /* リンクとコントロール間の間隔 */
         }
         .month-links a {
             margin-bottom: 5px;
-        }
-        .year-select {
-            margin-left: 10px;
         }
         .container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px;
+            padding: 20px; /* 調整 */
             background-color: white;
-            margin-top: 50px; /* リンクの下に余白を設定 */
+            margin-top: 20px; /* リンクの下に余白を設定 */
         }
         .name-management {
             margin-top: 20px;
-            align-self: flex-end;
             display: flex;
             gap: 10px;
+        }
+        .name-management input[type="text"] {
+            flex: 1; /* 名前入力フィールドを残りのスペースいっぱいに広げる */
+            margin-right: 10px; /* 入力フィールドとボタン間の間隔 */
         }
         .export-button {
             margin-top: 20px;
@@ -53,7 +55,7 @@
         .table-container {
             width: 100%;
             overflow-x: auto;
-            margin-top: 20px;
+            margin-top: 10px;
             max-height: calc(100vh - 150px); /* 画面の高さからリンクと余白分を引く */
         }
         table {
@@ -64,14 +66,14 @@
             border: 1px solid #ddd;
             padding: 8px;
             text-align: center;
-            min-width: 80px;
+            min-width: 50px;
         }
         tbody td:nth-child(odd) {
             background-color: #FFF4DB;
         }
         th:first-child,
         td:first-child {
-            min-width: 50px;
+            min-width: 40px;
             position: sticky;
             left: 0;
             background-color: #F0F0F0; /* 薄いグレー */
@@ -96,8 +98,7 @@
             background-color: #FFF;
             z-index: 1;
         }
-    </style>
-</head>
+    </style></head>
 <body>
     <h1>出退勤時間記録</h1>
     <div class="container">
@@ -129,7 +130,7 @@
             <select id="year-select" class="year-select">
                 <!-- 2024年から2033年までの選択肢を追加 -->
                 <script>
-                    for (let year = 2024; year <= 2033; year++) {
+                    for (let year = 2024; year <= 2099; year++) {
                         document.write('<option value="' + year + '">' + year + '年</option>');
                     }
                 </script>
