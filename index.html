@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>出退勤時間記録</title>
     <link rel="stylesheet" href="styles.css">
-        <style>
+    <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -22,7 +22,7 @@
             flex-wrap: wrap;
             gap: 10px;
             margin-top: 75px;
-	　　justify-content: flex-end; /* 右端に寄せる */
+            justify-content: flex-end; /* 右端に寄せる */
             top: 0;
             right: 20px;
             padding: 10px;
@@ -30,6 +30,9 @@
         }
         .month-links a {
             margin-bottom: 5px;
+        }
+        .year-select {
+            margin-left: 10px;
         }
         .container {
             display: flex;
@@ -70,6 +73,10 @@
         th:first-child,
         td:first-child {
             min-width: 50px;
+            position: sticky;
+            left: 0;
+            background-color: #FEE3D7;
+            z-index: 1;
         }
         th.colspan-2 {
             text-align: center;
@@ -108,6 +115,18 @@
             <a href="#" id="october-link">10月</a>
             <a href="#" id="november-link">11月</a>
             <a href="#" id="december-link">12月</a>
+            <select id="year-select" class="year-select">
+                <script>
+                    const yearSelect = document.getElementById('year-select');
+                    const currentYear = new Date().getFullYear();
+                    for (let year = currentYear; year <= 2033; year++) {
+                        const option = document.createElement('option');
+                        option.value = year;
+                        option.textContent = year + '年';
+                        yearSelect.appendChild(option);
+                    }
+                </script>
+            </select>
         </div>
         <div class="table-container">
             <table id="attendance-table">
@@ -138,29 +157,27 @@
             measurementId: "G-DB225BE3JD"
         };
 
-
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
         async function saveData(name, date, type, value) {
-    try {
-        const docRef = doc(db, 'attendance', name);
-        const docSnap = await getDoc(docRef);
-        const fieldName = `${date.replace('/', '-')}_${type}`; // スラッシュをダッシュに置き換える
-        if (docSnap.exists()) {
-            await updateDoc(docRef, {
-                [fieldName]: value
-            });
-        } else {
-            await setDoc(docRef, {
-                [fieldName]: value
-            });
+            try {
+                const docRef = doc(db, 'attendance', name);
+                const docSnap = await getDoc(docRef);
+                const fieldName = `${date.replace('/', '-')}_${type}`; // スラッシュをダッシュに置き換える
+                if (docSnap.exists()) {
+                    await updateDoc(docRef, {
+                        [fieldName]: value
+                    });
+                } else {
+                    await setDoc(docRef, {
+                        [fieldName]: value
+                    });
+                }
+            } catch (e) {
+                console.error("Error saving document: ", e);
+            }
         }
-    } catch (e) {
-        console.error("Error saving document: ", e);
-    }
-}
-
 
         async function addNameToFirestore(name) {
             try {
@@ -198,24 +215,27 @@
             const headerRow = document.getElementById('attendance-table').getElementsByTagName('thead')[0].rows[0];
             const subHeaderRow = document.getElementById('attendance-table').getElementsByTagName('thead')[0].rows[1];
             const exportButton = document.getElementById('export-button');
+            const yearSelect = document.getElementById('year-select');
             const months = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
             
             let currentMonthIndex = new Date().getMonth();
+            let currentYear = new Date().getFullYear();
+            yearSelect.value = currentYear;
             let currentMonth = months[currentMonthIndex];
 
             let names = await loadNamesFromFirestore();
             let selectedCells = [];
 
-            generateTable(currentMonthIndex);
+            generateTable(currentYear, currentMonthIndex);
 
-            async function generateTable(monthIndex) {
+            async function generateTable(year, monthIndex) {
                 while (headerRow.cells.length > 1) {
                     headerRow.deleteCell(-1);
                 }
                 while (subHeaderRow.cells.length > 0) {
                     subHeaderRow.deleteCell(-1);
                 }
-                const monthDays = new Date(new Date().getFullYear(), monthIndex + 1, 0).getDate();
+                const monthDays = new Date(year, monthIndex + 1, 0).getDate();
                 for (const name of names) {
                     let th = document.createElement('th');
                     th.innerText = name;
@@ -235,10 +255,11 @@
                 table.innerHTML = '';
 
                 for (let day = 1; day <= monthDays; day++) {
-                    let date = `${monthIndex + 1}/${day}`;
+                    let date = `${year}/${monthIndex + 1}/${day}`;
                     let row = table.insertRow();
                     let dateCell = row.insertCell();
                     dateCell.innerText = date;
+                    dateCell.className = 'fixed-column';
 
                     for (const name of names) {
                         let inCell = row.insertCell();
@@ -247,14 +268,14 @@
                         const docSnap = await getDoc(doc(db, 'attendance', name));
                         if (docSnap.exists()) {
                             const data = docSnap.data();
-                            const fieldNameIn = `${date.replace('/', '-').replace('月', '')}_in`; // 月とスラッシュを削除し、ダッシュに置き換える
-			　　const fieldNameOut = `${date.replace('/', '-').replace('月', '')}_out`; // 月とスラッシュを削除し、ダッシュに置き換える
-			　　if (data[fieldNameIn]) {
-    			　　　　inCell.innerText = data[fieldNameIn];
-			　　}
-			　　if (data[fieldNameOut]) {
-   			　　　　 outCell.innerText = data[fieldNameOut];
-			　}
+                            const fieldNameIn = `${year}-${date.replace('/', '-').replace('月', '')}_in`; // 月とスラッシュを削除し、ダッシュに置き換える
+                            const fieldNameOut = `${year}-${date.replace('/', '-').replace('月', '')}_out`; // 月とスラッシュを削除し、ダッシュに置き換える
+                            if (data[fieldNameIn]) {
+                                inCell.innerText = data[fieldNameIn];
+                            }
+                            if (data[fieldNameOut]) {
+                                outCell.innerText = data[fieldNameOut];
+                            }
                         }
                     }
                 }
@@ -298,26 +319,26 @@
             });
 
             bulkClearButton.addEventListener('click', async () => {
-    try {
-        const batch = [];
-        for (const cell of selectedCells) {
-            const date = cell.parentElement.cells[0].innerText;
-            const nameIndex = Math.floor((cell.cellIndex - 1) / 2);
-            const name = headerRow.cells[nameIndex + 1].innerText;
-            const type = cell.cellIndex % 2 === 1 ? 'in' : 'out';
-            const fieldName = `${date.replace('/', '-').replace('月', '')}_${type}`;
-            const docRef = doc(db, 'attendance', name);
-            batch.push(updateDoc(docRef, {
-                [fieldName]: ''
-            }));
-        }
-        await Promise.all(batch);
-        generateTable(currentMonthIndex);
-        clearSelection();
-    } catch (error) {
-        console.error('Error clearing data:', error);
-    }
-});
+                try {
+                    const batch = [];
+                    for (const cell of selectedCells) {
+                        const date = cell.parentElement.cells[0].innerText;
+                        const nameIndex = Math.floor((cell.cellIndex - 1) / 2);
+                        const name = headerRow.cells[nameIndex + 1].innerText;
+                        const type = cell.cellIndex % 2 === 1 ? 'in' : 'out';
+                        const fieldName = `${date.replace('/', '-').replace('月', '')}_${type}`;
+                        const docRef = doc(db, 'attendance', name);
+                        batch.push(updateDoc(docRef, {
+                            [fieldName]: ''
+                        }));
+                    }
+                    await Promise.all(batch);
+                    generateTable(currentYear, currentMonthIndex);
+                    clearSelection();
+                } catch (error) {
+                    console.error('Error clearing data:', error);
+                }
+            });
 
             function clearSelection() {
                 selectedCells.forEach(cell => cell.style.backgroundColor = '');
@@ -327,8 +348,13 @@
             function updateMonth(monthIndex) {
                 currentMonthIndex = monthIndex;
                 currentMonth = months[monthIndex];
-                generateTable(monthIndex);
+                generateTable(currentYear, monthIndex);
             }
+
+            yearSelect.addEventListener('change', () => {
+                currentYear = parseInt(yearSelect.value);
+                generateTable(currentYear, currentMonthIndex);
+            });
 
             const monthLinks = document.querySelectorAll('.month-links a');
             monthLinks.forEach((link, index) => {
@@ -343,7 +369,7 @@
                 if (nameToAdd && !names.includes(nameToAdd)) {
                     names.push(nameToAdd);
                     await addNameToFirestore(nameToAdd);
-                    generateTable(currentMonthIndex);
+                    generateTable(currentYear, currentMonthIndex);
                     nameInput.value = '';
                 }
             });
@@ -353,35 +379,35 @@
                 if (names.includes(nameToRemove)) {
                     names = names.filter(name => name !== nameToRemove);
                     await removeNameFromFirestore(nameToRemove);
-                    generateTable(currentMonthIndex);
+                    generateTable(currentYear, currentMonthIndex);
                     nameInput.value = '';
                 }
             });
 
-           exportButton.addEventListener('click', () => {
-    const wb = XLSX.utils.book_new();
-    const ws_data = [];
+            exportButton.addEventListener('click', () => {
+                const wb = XLSX.utils.book_new();
+                const ws_data = [];
 
-    // ヘッダーロウを生成する
-    const header_row = ['日時', ...names.flatMap(name => [name, ''])]; // 氏名を結合せずに配置
-    const shift_row = ['', ...names.flatMap(() => ['出勤', '退勤'])]; // 出勤と退勤のセルを追加
-    ws_data.push(header_row, shift_row);
-    
-    // データを取得してシートに書き込む
-    const rows = table.querySelectorAll('tr');
-    rows.forEach((row, index) => {
-        const cells = row.querySelectorAll('th, td');
-        const row_data = [];
-        cells.forEach(cell => {
-            row_data.push(cell.innerText);
-        });
-        ws_data.push(row_data);
-    });
-    
-    const ws = XLSX.utils.aoa_to_sheet(ws_data);
-    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
-    XLSX.writeFile(wb, 'attendance.xlsx');
-});
+                // ヘッダーロウを生成する
+                const header_row = ['日時', ...names.flatMap(name => [name, ''])]; // 氏名を結合せずに配置
+                const shift_row = ['', ...names.flatMap(() => ['出勤', '退勤'])]; // 出勤と退勤のセルを追加
+                ws_data.push(header_row, shift_row);
+
+                // データを取得してシートに書き込む
+                const rows = table.querySelectorAll('tr');
+                rows.forEach((row, index) => {
+                    const cells = row.querySelectorAll('th, td');
+                    const row_data = [];
+                    cells.forEach(cell => {
+                        row_data.push(cell.innerText);
+                    });
+                    ws_data.push(row_data);
+                });
+
+                const ws = XLSX.utils.aoa_to_sheet(ws_data);
+                XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+                XLSX.writeFile(wb, 'attendance.xlsx');
+            });
         });
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
