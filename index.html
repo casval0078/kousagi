@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>出退勤時間記録</title>
-<style>
+    <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -13,41 +13,44 @@
         }
         .control-group {
             display: flex;
-            justify-content: center; /* 中央に配置 */
-            margin-bottom: 20px; /* コントロール間の間隔を追加 */
+            justify-content: center;
+            margin-bottom: 20px;
         }
         .year-and-months {
             display: flex;
-            align-items: center; /* 年と月リンクを垂直方向に中央揃え */
+            align-items: center;
         }
         .year-select {
-            margin-right: 10px; /* 年のドロップダウンと月リンクとの間隔を調整 */
+            margin-right: 10px;
         }
         .month-links {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px; /* 月リンク間の間隔 */
-            margin-bottom: 20px; /* リンクとコントロール間の間隔 */
+            gap: 10px;
+            margin-bottom: 20px;
         }
         .month-links a {
             margin-bottom: 5px;
+            line-height: 1.5; /* 年選択のプルダウンと揃えるために行の高さを調整 */
         }
         .container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px; /* 調整 */
+            padding: 20px;
             background-color: white;
-            margin-top: 20px; /* リンクの下に余白を設定 */
+            margin-top: 20px;
         }
         .name-management {
             margin-top: 20px;
             display: flex;
             gap: 10px;
+            position: absolute;
+            right: 20px;
         }
         .name-management input[type="text"] {
-            flex: 1; /* 名前入力フィールドを残りのスペースいっぱいに広げる */
-            margin-right: 10px; /* 入力フィールドとボタン間の間隔 */
+            flex: 1;
+            margin-right: 10px;
         }
         .export-button {
             margin-top: 20px;
@@ -56,7 +59,7 @@
             width: 100%;
             overflow-x: auto;
             margin-top: 10px;
-            max-height: calc(100vh - 150px); /* 画面の高さからリンクと余白分を引く */
+            max-height: calc(100vh - 150px);
         }
         table {
             border-collapse: collapse;
@@ -76,27 +79,29 @@
             min-width: 40px;
             position: sticky;
             left: 0;
-            background-color: #F0F0F0; /* 薄いグレー */
-            z-index: 3; /* 名前列より前に表示 */
+            background-color: #F0F0F0;
+            z-index: 3;
         }
         th.colspan-2,
         th.colspan-2 + th {
             position: sticky;
             top: 0;
-            background-color: #F0F0F0; /* 薄いグレー */
-            z-index: 2; /* 固定するためのZインデックス */
-        }
-        th.colspan-2 + th {
+            background-color: #F0F0F0;
             z-index: 2;
-        }
-        th, td {
-            z-index: 1; /* 通常のセルはZインデックスを1に設定 */
         }
         th.sticky-second-row {
             position: sticky;
-            top: 24px; /* 1行目の高さ分 */
-            background-color: #FFF;
+            top: 24px;
+            background-color: #F0F0F0; /* 薄いグレー */
             z-index: 1;
+        }
+        .button-group button {
+            font-size: 1.2em;
+            padding: 10px 20px;
+            margin-right: 10px;
+        }
+        .selected {
+            background-color: #B0C4DE !important;
         }
     </style>
 </head>
@@ -109,33 +114,34 @@
                 <button id="bulk-absent-button">欠席</button>
                 <button id="bulk-clear-button">クリア</button>
             </div>
-            <div class="button-group">
-                <input type="text" id="name-input" placeholder="氏名を入力">
-                                <button id="add-name-button">追加</button>
-                <button id="remove-name-button">削除</button>
+            <div class="year-and-months">
+                <select id="year-select" class="year-select">
+                    <script>
+                        for (let year = 2024; year <= 2099; year++) {
+                            document.write('<option value="' + year + '">' + year + '年</option>');
+                        }
+                    </script>
+                </select>
+                <div class="month-links">
+                    <a href="#" id="january-link">1月</a>
+                    <a href="#" id="february-link">2月</a>
+                    <a href="#" id="march-link">3月</a>
+                    <a href="#" id="april-link">4月</a>
+                    <a href="#" id="may-link">5月</a>
+                    <a href="#" id="june-link">6月</a>
+                    <a href="#" id="july-link">7月</a>
+                    <a href="#" id="august-link">8月</a>
+                    <a href="#" id="september-link">9月</a>
+                    <a href="#" id="october-link">10月</a>
+                    <a href="#" id="november-link">11月</a>
+                    <a href="#" id="december-link">12月</a>
+                </div>
             </div>
         </div>
-        <div class="month-links">
-            <a href="#" id="january-link">1月</a>
-            <a href="#" id="february-link">2月</a>
-            <a href="#" id="march-link">3月</a>
-            <a href="#" id="april-link">4月</a>
-            <a href="#" id="may-link">5月</a>
-            <a href="#" id="june-link">6月</a>
-            <a href="#" id="july-link">7月</a>
-            <a href="#" id="august-link">8月</a>
-            <a href="#" id="september-link">9月</a>
-            <a href="#" id="october-link">10月</a>
-            <a href="#" id="november-link">11月</a>
-            <a href="#" id="december-link">12月</a>
-            <select id="year-select" class="year-select">
-                <!-- 2024年から2033年までの選択肢を追加 -->
-                <script>
-                    for (let year = 2024; year <= 2099; year++) {
-                        document.write('<option value="' + year + '">' + year + '年</option>');
-                    }
-                </script>
-            </select>
+        <div class="name-management">
+            <input type="text" id="name-input" placeholder="氏名を入力">
+            <button id="add-name-button">追加</button>
+            <button id="remove-name-button">削除</button>
         </div>
         <div class="table-container">
             <table id="attendance-table">
@@ -154,6 +160,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
         import { getFirestore, doc, setDoc, getDoc, getDocs, collection, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+        import { utils, writeFile } from 'https://cdn.sheetjs.com/xlsx-latest/package/xlsx.mjs';
 
         // Your web app's Firebase configuration
         const firebaseConfig = {
@@ -169,11 +176,11 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        async function saveData(name, date, type, value) {
+        async function saveData(name, year, date, type, value) {
             try {
                 const docRef = doc(db, 'attendance', name);
                 const docSnap = await getDoc(docRef);
-                const fieldName = `${date.replace('/', '-')}_${type}`;
+                const fieldName = `${year}_${date.replace('/', '-').replace('月', '')}_${type}`;
                 if (docSnap.exists()) {
                     await updateDoc(docRef, {
                         [fieldName]: value
@@ -213,137 +220,140 @@
             return names;
         }
 
-        document.addEventListener('DOMContentLoaded', async (event) => {
+        async function loadDataFromFirestore() {
+            const querySnapshot = await getDocs(collection(db, 'attendance'));
+            const data = {};
+            querySnapshot.forEach((doc) => {
+                data[doc.id] = doc.data();
+            });
+            return data;
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const nameInput = document.getElementById('name-input');
             const bulkTimeButton = document.getElementById('bulk-time-button');
             const bulkAbsentButton = document.getElementById('bulk-absent-button');
             const bulkClearButton = document.getElementById('bulk-clear-button');
             const addNameButton = document.getElementById('add-name-button');
             const removeNameButton = document.getElementById('remove-name-button');
-            const nameInput = document.getElementById('name-input');
-            const table = document.getElementById('attendance-table').getElementsByTagName('tbody')[0];
-            const headerRow = document.getElementById('attendance-table').getElementsByTagName('thead')[0].rows[0];
-            const subHeaderRow = document.getElementById('attendance-table').getElementsByTagName('thead')[0].rows[1];
+            const attendanceTable = document.getElementById('attendance-table').getElementsByTagName('tbody')[0];
+            const yearSelect = document.getElementById('year-select');
+            const monthLinks = document.querySelectorAll('.month-links a');
             const exportButton = document.getElementById('export-button');
-            const months = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
 
-            let currentMonthIndex = new Date().getMonth();
-            let currentMonth = months[currentMonthIndex];
-
+            let currentYear = new Date().getFullYear();
+            let currentMonth = new Date().getMonth() + 1;
             let names = await loadNamesFromFirestore();
             let selectedCells = [];
 
-            generateTable(currentMonthIndex);
+            const updateTableHeader = () => {
+                const headerRow = attendanceTable.previousElementSibling.querySelector('tr');
+                const dateRow = headerRow.nextElementSibling;
+                headerRow.innerHTML = '<th rowspan="2" class="sticky">日時</th>';
+                dateRow.innerHTML = '';
 
-            async function generateTable(monthIndex) {
-                while (headerRow.cells.length > 1) {
-                    headerRow.deleteCell(-1);
-                }
-                while (subHeaderRow.cells.length > 0) {
-                    subHeaderRow.deleteCell(-1);
-                }
-                const monthDays = new Date(new Date().getFullYear(), monthIndex + 1, 0).getDate();
-                for (const name of names) {
-                    let th = document.createElement('th');
-                    th.innerText = name;
+                names.forEach((name) => {
+                    const th = document.createElement('th');
+                    th.textContent = name;
+                    th.classList.add('colspan-2');
                     th.colSpan = 2;
-                    th.className = "colspan-2";
                     headerRow.appendChild(th);
+                    dateRow.innerHTML += '<th class="sticky-second-row">出勤</th><th class="sticky-second-row">退勤</th>';
+                });
+            };
 
-                    let subTh1 = document.createElement('th');
-                    subTh1.innerText = '出勤';
-                    subTh1.className = "sticky-second-row";
-                    subHeaderRow.appendChild(subTh1);
+            const updateTableBody = async () => {
+                attendanceTable.innerHTML = '';
+                const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+                const data = await loadDataFromFirestore();
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const row = document.createElement('tr');
+                    const dateCell = document.createElement('td');
+                    dateCell.textContent = `${currentYear}年${currentMonth}月${day}日`;
+                    row.appendChild(dateCell);
+                    names.forEach((name) => {
+                        const checkInCell = document.createElement('td');
+                        checkInCell.contentEditable = true;
+                        checkInCell.dataset.name = name;
+                        checkInCell.dataset.date = `${currentMonth}/${day}`;
+                        checkInCell.dataset.year = currentYear;
+                        checkInCell.dataset.type = 'checkIn';
+                        checkInCell.addEventListener('click', () => selectCell(checkInCell));
+                        const fieldName = `${currentYear}_${currentMonth}-${day}_checkIn`;
+                        checkInCell.textContent = data[name] && data[name][fieldName] ? data[name][fieldName] : '';
+                        row.appendChild(checkInCell);
 
-                    let subTh2 = document.createElement('th');
-                    subTh2.innerText = '退勤';
-                    subTh2.className = "sticky-second-row";
-                    subHeaderRow.appendChild(subTh2);
+                        const checkOutCell = document.createElement('td');
+                        checkOutCell.contentEditable = true;
+                        checkOutCell.dataset.name = name;
+                        checkOutCell.dataset.date = `${currentMonth}/${day}`;
+                        checkOutCell.dataset.year = currentYear;
+                        checkOutCell.dataset.type = 'checkOut';
+                        checkOutCell.addEventListener('click', () => selectCell(checkOutCell));
+                        const fieldNameOut = `${currentYear}_${currentMonth}-${day}_checkOut`;
+                        checkOutCell.textContent = data[name] && data[name][fieldNameOut] ? data[name][fieldNameOut] : '';
+                        row.appendChild(checkOutCell);
+                    });
+                    attendanceTable.appendChild(row);
                 }
+            };
 
-                table.innerHTML = '';
+            const updateTable = async () => {
+                updateTableHeader();
+                await updateTableBody();
+            };
 
-                for (let day = 1; day <= monthDays; day++) {
-                    let date = `${monthIndex + 1}/${day}`;
-                    let row = table.insertRow();
-                    let dateCell = row.insertCell();
-                    dateCell.innerText = date;
-
-                    for (const name of names) {
-                        let inCell = row.insertCell();
-                        let outCell = row.insertCell();
-
-                        const docSnap = await getDoc(doc(db, 'attendance', name));
-                        if (docSnap.exists()) {
-                            const data = docSnap.data();
-                            const fieldNameIn = `${date.replace('/', '-').replace('月', '')}_in`;
-                            const fieldNameOut = `${date.replace('/', '-').replace('月', '')}_out`;
-                            if (data[fieldNameIn]) {
-                                inCell.innerText = data[fieldNameIn];
-                            }
-                            if (data[fieldNameOut]) {
-                                outCell.innerText = data[fieldNameOut];
-                            }
-                        }
-                    }
+            const selectCell = (cell) => {
+                if (cell.classList.contains('selected')) {
+                    cell.classList.remove('selected');
+                    selectedCells = selectedCells.filter(selectedCell => selectedCell !== cell);
+                } else {
+                    cell.classList.add('selected');
+                    selectedCells.push(cell);
                 }
-            }
+            };
 
-            table.parentElement.addEventListener('click', (e) => {
-                if (e.target.tagName === 'TD' && e.target.cellIndex > 0) {
-                    if (selectedCells.includes(e.target)) {
-                        e.target.style.backgroundColor = '';
-                        selectedCells = selectedCells.filter(cell => cell !== e.target);
-                    } else {
-                        e.target.style.backgroundColor = '#b0c4de';
-                        selectedCells.push(e.target);
-                    }
-                }
+            const bulkUpdateCells = (value) => {
+                selectedCells.forEach(cell => {
+                    cell.textContent = value;
+                    saveData(cell.dataset.name, cell.dataset.year, cell.dataset.date, cell.dataset.type, value);
+                });
+                selectedCells = [];
+                attendanceTable.querySelectorAll('td').forEach(cell => cell.classList.remove('selected'));
+            };
+
+            const exportToExcel = () => {
+                const wb = utils.book_new();
+                const ws = utils.table_to_sheet(document.getElementById('attendance-table'));
+                utils.book_append_sheet(wb, ws, "Attendance");
+                writeFile(wb, "attendance.xlsx");
+            };
+
+            yearSelect.value = currentYear;
+            monthLinks[currentMonth - 1].classList.add('active');
+
+            yearSelect.addEventListener('change', async (e) => {
+                currentYear = parseInt(e.target.value, 10);
+                await updateTable();
             });
 
-            bulkTimeButton.addEventListener('click', async () => {
-                const currentTime = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
-                for (const cell of selectedCells) {
-                    const date = cell.parentElement.cells[0].innerText;
-                    const nameIndex = Math.floor((cell.cellIndex - 1) / 2);
-                    const name = headerRow.cells[nameIndex + 1].innerText;
-                    const type = cell.cellIndex % 2 === 1 ? 'in' : 'out';
-                    cell.innerText = currentTime;
-                    await saveData(name, date, type, currentTime);
-                }
-                clearSelection();
-            });
-
-            bulkAbsentButton.addEventListener('click', async () => {
-                for (const cell of selectedCells) {
-                    const date = cell.parentElement.cells[0].innerText;
-                    const nameIndex = Math.floor((cell.cellIndex - 1) / 2);
-                    const name = headerRow.cells[nameIndex + 1].innerText;
-                    const type = cell.cellIndex % 2 === 1 ? 'in' : 'out';
-                    cell.innerText = '欠席';
-                    await saveData(name, date, type, '欠席');
-                }
-                clearSelection();
-            });
-
-            bulkClearButton.addEventListener('click', async () => {
-                for (const cell of selectedCells) {
-                    const date = cell.parentElement.cells[0].innerText;
-                    const nameIndex = Math.floor((cell.cellIndex - 1) / 2);
-                    const name = headerRow.cells[nameIndex + 1].innerText;
-                    const type = cell.cellIndex % 2 === 1 ? 'in' : 'out';
-                    cell.innerText = '';
-                    await saveData(name, date, type, '');
-                }
-                clearSelection();
+            monthLinks.forEach((link, index) => {
+                link.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    currentMonth = index + 1;
+                    monthLinks.forEach(link => link.classList.remove('active'));
+                    e.target.classList.add('active');
+                    await updateTable();
+                });
             });
 
             addNameButton.addEventListener('click', async () => {
                 const name = nameInput.value.trim();
-                if (name && !names.includes(name)) {
+                if (name) {
                     names.push(name);
-                    await addNameToFirestore(name);
-                    generateTable(currentMonthIndex);
                     nameInput.value = '';
+                    await addNameToFirestore(name);
+                    await updateTable();
                 }
             });
 
@@ -351,70 +361,30 @@
                 const name = nameInput.value.trim();
                 if (name && names.includes(name)) {
                     names = names.filter(n => n !== name);
-                    await removeNameFromFirestore(name);
-                    generateTable(currentMonthIndex);
                     nameInput.value = '';
+                    await removeNameFromFirestore(name);
+                    await updateTable();
                 }
             });
 
-            exportButton.addEventListener('click', () => {
-                let tableExport = document.createElement('table');
-                let theadExport = tableExport.createTHead();
-                let tbodyExport = tableExport.createTBody();
-                let headerRowExport = theadExport.insertRow();
-                let subHeaderRowExport = theadExport.insertRow();
-
-                for (let i = 0; i < headerRow.cells.length; i++) {
-                    let th = document.createElement('th');
-                    th.innerText = headerRow.cells[i].innerText;
-                    th.colSpan = headerRow.cells[i].colSpan;
-                    headerRowExport.appendChild(th);
-                }
-
-                for (let i = 0; i < subHeaderRow.cells.length; i++) {
-                    let th = document.createElement('th');
-                    th.innerText = subHeaderRow.cells[i].innerText;
-                    subHeaderRowExport.appendChild(th);
-                }
-
-                for (let i = 0; i < table.rows.length; i++) {
-                    let row = table.rows[i];
-                    let rowExport = tbodyExport.insertRow();
-                    for (let j = 0; j < row.cells.length; j++) {
-                        let cell = row.cells[j];
-                        let cellExport = rowExport.insertCell();
-                        cellExport.innerText = cell.innerText;
-                    }
-                }
-
-                let wb = XLSX.utils.book_new();
-                let ws = XLSX.utils.table_to_sheet(tableExport);
-                XLSX.utils.book_append_sheet(wb, ws, 'Attendance');
-                XLSX.writeFile(wb, 'attendance.xlsx');
+            bulkTimeButton.addEventListener('click', () => {
+                const now = new Date();
+                const time = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+                bulkUpdateCells(time);
             });
 
-            function clearSelection() {
-                for (const cell of selectedCells) {
-                    cell.style.backgroundColor = '';
-                }
-                selectedCells = [];
-            }
-
-            document.querySelectorAll('.month-links a').forEach((link, index) => {
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    currentMonthIndex = index;
-                    currentMonth = months[currentMonthIndex];
-                    generateTable(currentMonthIndex);
-                });
+            bulkAbsentButton.addEventListener('click', () => {
+                bulkUpdateCells('欠席');
             });
 
-            document.getElementById('year-select').addEventListener('change', (e) => {
-                generateTable(currentMonthIndex);
+            bulkClearButton.addEventListener('click', () => {
+                bulkUpdateCells('');
             });
+
+            exportButton.addEventListener('click', exportToExcel);
+
+            await updateTable();
         });
     </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
 </body>
 </html>
-
