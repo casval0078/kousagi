@@ -147,7 +147,7 @@
             <table id="attendance-table">
                 <thead>
                     <tr>
-                        <th rowspan="2" class="sticky">日時</th>
+                        <th rowspan="2" class="sticky">日付</th>
                     </tr>
                     <tr class="sticky-second-row"></tr>
                 </thead>
@@ -249,7 +249,7 @@
             const updateTableHeader = () => {
                 const headerRow = attendanceTable.previousElementSibling.querySelector('tr');
                 const dateRow = headerRow.nextElementSibling;
-                headerRow.innerHTML = '<th rowspan="2" class="sticky">日時</th>';
+                headerRow.innerHTML = '<th rowspan="2" class="sticky">日付</th>';
                 dateRow.innerHTML = '';
 
                 names.forEach((name) => {
@@ -269,11 +269,10 @@
                 for (let day = 1; day <= daysInMonth; day++) {
                     const row = document.createElement('tr');
                     const dateCell = document.createElement('td');
-                    dateCell.textContent = `${currentYear}年${currentMonth}月${day}日`;
+                    dateCell.textContent = `${currentMonth}月${day}日`;
                     row.appendChild(dateCell);
                     names.forEach((name) => {
                         const checkInCell = document.createElement('td');
-                        checkInCell.contentEditable = true;
                         checkInCell.dataset.name = name;
                         checkInCell.dataset.date = `${currentMonth}/${day}`;
                         checkInCell.dataset.year = currentYear;
@@ -284,7 +283,6 @@
                         row.appendChild(checkInCell);
 
                         const checkOutCell = document.createElement('td');
-                        checkOutCell.contentEditable = true;
                         checkOutCell.dataset.name = name;
                         checkOutCell.dataset.date = `${currentMonth}/${day}`;
                         checkOutCell.dataset.year = currentYear;
@@ -322,9 +320,27 @@
                 attendanceTable.querySelectorAll('td').forEach(cell => cell.classList.remove('selected'));
             };
 
-            const exportToExcel = () => {
+            const exportToExcel = async () => {
                 const wb = utils.book_new();
-                const ws = utils.table_to_sheet(document.getElementById('attendance-table'));
+                const wsData = [['日付']];
+                names.forEach(name => {
+                    wsData[0].push(name + ' 出勤', name + ' 退勤');
+                });
+
+                const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+                const data = await loadDataFromFirestore();
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const row = [`${currentYear}/${currentMonth}/${day}`];
+                    names.forEach(name => {
+                        const fieldNameIn = `${currentYear}_${currentMonth}-${day}_checkIn`;
+                        const fieldNameOut = `${currentYear}_${currentMonth}-${day}_checkOut`;
+                        row.push(data[name] && data[name][fieldNameIn] ? data[name][fieldNameIn] : '');
+                        row.push(data[name] && data[name][fieldNameOut] ? data[name][fieldNameOut] : '');
+                    });
+                    wsData.push(row);
+                }
+
+                const ws = utils.aoa_to_sheet(wsData);
                 utils.book_append_sheet(wb, ws, "Attendance");
                 writeFile(wb, "attendance.xlsx");
             };
