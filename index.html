@@ -15,19 +15,25 @@
             display: flex;
             justify-content: center;
             margin-bottom: 20px;
+            position: fixed; /* 追加 */
+            bottom: 20px; /* 追加 */
+            width: 100%; /* 追加 */
+            background-color: white; /* 追加 */
+            padding: 10px 0; /* 追加 */
+            z-index: 1000; /* 追加 */
         }
         .year-and-months {
             display: flex;
             align-items: center;
         }
         .year-select {
-            margin-right: 10px;
+            margin-right: 20px;
         }
         .month-links {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 5px;
         }
         .month-links a {
             margin-bottom: 5px;
@@ -67,20 +73,24 @@
         }
         th, td {
             border: 1px solid #ddd;
-            padding: 8px;
+            padding: 4px;
             text-align: center;
-            min-width: 50px;
+            min-width: 70px;
         }
         tbody td:nth-child(odd) {
             background-color: #FFF4DB;
         }
         th:first-child,
         td:first-child {
-            min-width: 40px;
+            min-width: 70px;
             position: sticky;
             left: 0;
             background-color: #F0F0F0;
             z-index: 3;
+        }
+        th:first-child, /* 追加 */
+        td:first-child { /* 追加 */
+            background-color: #F0F0F0 !important; /* 追加 */
         }
         th.colspan-2,
         th.colspan-2 + th {
@@ -111,7 +121,7 @@
         <div class="controls">
             <div class="button-group">
                 <button id="bulk-time-button">時刻入力</button>
-                <button id="bulk-absent-button">欠席</button>
+                <button id="bulk-absent-button">休み</button>
                 <button id="bulk-clear-button">クリア</button>
             </div>
             <div class="year-and-months">
@@ -323,9 +333,18 @@
             const exportToExcel = async () => {
                 const wb = utils.book_new();
                 const wsData = [['日付']];
+
+                // 名前の分だけ出勤と退勤のカラムを作る
                 names.forEach(name => {
-                    wsData[0].push(name + ' 出勤', name + ' 退勤');
+                    wsData[0].push(name, '');
                 });
+
+                // 2行目に「出勤」と「退勤」を追加
+                const secondRow = [''];
+                names.forEach(() => {
+                    secondRow.push('出勤', '退勤');
+                });
+                wsData.push(secondRow);
 
                 const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
                 const data = await loadDataFromFirestore();
@@ -341,7 +360,7 @@
                 }
 
                 const ws = utils.aoa_to_sheet(wsData);
-                utils.book_append_sheet(wb, ws, "Attendance");
+                utils.book_append_sheet(wb, ws, "出退勤");
                 writeFile(wb, "attendance.xlsx");
             };
 
@@ -390,7 +409,7 @@
             });
 
             bulkAbsentButton.addEventListener('click', () => {
-                bulkUpdateCells('欠席');
+                bulkUpdateCells('休');
             });
 
             bulkClearButton.addEventListener('click', () => {
