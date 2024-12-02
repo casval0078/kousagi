@@ -43,7 +43,7 @@
             display: none; /* 非表示にする */
         }
         .export-button {
-            display: none; /* 非表示にする */
+            margin-top: 20px;
         }
         .table-container {
             width: 100%;
@@ -92,7 +92,7 @@
     </style>
 </head>
 <body>
-    <h1>出退勤時間記録</h1>
+    <h1>　出退勤時間記録</h1>
     <div class="container">
         <div class="controls">
             <div class="button-group">
@@ -124,6 +124,7 @@
                 </div>
             </div>
         </div>
+        <button id="export-button" class="export-button">エクセルに出力</button>
         <div class="name-management">
             <input type="text" id="name-input" placeholder="氏名を入力">
             <button id="add-name-button">追加</button>
@@ -140,7 +141,6 @@
                 <tbody></tbody>
             </table>
         </div>
-        <button id="export-button" class="export-button">エクセルに出力</button>
     </div>
     <!-- Firebase SDK -->
     <script type="module">
@@ -203,6 +203,7 @@
             const attendanceTable = document.getElementById('attendance-table').getElementsByTagName('tbody')[0];
             const yearSelect = document.getElementById('year-select');
             const monthLinks = document.querySelectorAll('.month-links a');
+            const exportButton = document.getElementById('export-button');
 
             let currentYear = new Date().getFullYear();
             let currentMonth = new Date().getMonth() + 1;
@@ -261,6 +262,40 @@
                 await updateTableBody();
             };
 
+            const exportToExcel = async () => {
+                const wb = utils.book_new();
+                const wsData = [['日付']];
+
+                // 名前の分だけ出勤と退勤のカラムを作る
+                names.forEach(name => {
+                    wsData[0].push(name, '');
+                });
+
+                // 2行目に「出勤」と「退勤」を追加
+                const secondRow = [''];
+                names.forEach(() => {
+                    secondRow.push('出勤', '退勤');
+                });
+                wsData.push(secondRow);
+
+                const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+                const data = await loadDataFromFirestore();
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const row = [`${currentYear}/${currentMonth}/${day}`];
+                    names.forEach(name => {
+                        const fieldNameIn = `${currentYear}_${currentMonth}-${day}_checkIn`;
+                        const fieldNameOut = `${currentYear}_${currentMonth}-${day}_checkOut`;
+                        row.push(data[name] && data[name][fieldNameIn] ? data[name][fieldNameIn] : '');
+                        row.push(data[name] && data[name][fieldNameOut] ? data[name][fieldNameOut] : '');
+                    });
+                    wsData.push(row);
+                }
+
+                const ws = utils.aoa_to_sheet(wsData);
+                utils.book_append_sheet(wb, ws, "出退勤");
+                writeFile(wb, "attendance.xlsx");
+            };
+
             yearSelect.value = currentYear;
             monthLinks[currentMonth - 1].classList.add('active');
 
@@ -278,6 +313,8 @@
                     await updateTable();
                 });
             });
+
+            exportButton.addEventListener('click', exportToExcel);
 
             await updateTable();
         });
