@@ -11,16 +11,8 @@
             padding: 0;
             background-color: #FEE3D7;
         }
-        .control-group {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
-            position: fixed; /* 追加 */
-            bottom: 20px; /* 追加 */
-            width: 100%; /* 追加 */
-            background-color: white; /* 追加 */
-            padding: 10px 0; /* 追加 */
-            z-index: 1000; /* 追加 */
+        .button-group {
+            display: none; /* 非表示にする */
         }
         .year-and-months {
             display: flex;
@@ -48,18 +40,10 @@
             margin-top: 20px;
         }
         .name-management {
-            margin-top: 20px;
-            display: flex;
-            gap: 10px;
-            position: absolute;
-            right: 20px;
-        }
-        .name-management input[type="text"] {
-            flex: 1;
-            margin-right: 10px;
+            display: none; /* 非表示にする */
         }
         .export-button {
-            margin-top: 20px;
+            display: none; /* 非表示にする */
         }
         .table-container {
             width: 100%;
@@ -104,14 +88,6 @@
             top: 24px;
             background-color: #F0F0F0; /* 薄いグレー */
             z-index: 1;
-        }
-        .button-group button {
-            font-size: 1.2em;
-            padding: 10px 20px;
-            margin-right: 10px;
-        }
-        .selected {
-            background-color: #B0C4DE !important;
         }
     </style>
 </head>
@@ -205,22 +181,6 @@
             }
         }
 
-        async function addNameToFirestore(name) {
-            try {
-                await setDoc(doc(db, 'attendance', name), {});
-            } catch (e) {
-                console.error("Error adding document: ", e);
-            }
-        }
-
-        async function removeNameFromFirestore(name) {
-            try {
-                await deleteDoc(doc(db, 'attendance', name));
-            } catch (e) {
-                console.error("Error deleting document: ", e);
-            }
-        }
-
         async function loadNamesFromFirestore() {
             const querySnapshot = await getDocs(collection(db, 'attendance'));
             const names = [];
@@ -240,21 +200,13 @@
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
-            const nameInput = document.getElementById('name-input');
-            const bulkTimeButton = document.getElementById('bulk-time-button');
-            const bulkAbsentButton = document.getElementById('bulk-absent-button');
-            const bulkClearButton = document.getElementById('bulk-clear-button');
-            const addNameButton = document.getElementById('add-name-button');
-            const removeNameButton = document.getElementById('remove-name-button');
             const attendanceTable = document.getElementById('attendance-table').getElementsByTagName('tbody')[0];
             const yearSelect = document.getElementById('year-select');
             const monthLinks = document.querySelectorAll('.month-links a');
-            const exportButton = document.getElementById('export-button');
 
             let currentYear = new Date().getFullYear();
             let currentMonth = new Date().getMonth() + 1;
             let names = await loadNamesFromFirestore();
-            let selectedCells = [];
 
             const updateTableHeader = () => {
                 const headerRow = attendanceTable.previousElementSibling.querySelector('tr');
@@ -287,7 +239,6 @@
                         checkInCell.dataset.date = `${currentMonth}/${day}`;
                         checkInCell.dataset.year = currentYear;
                         checkInCell.dataset.type = 'checkIn';
-                        checkInCell.addEventListener('click', () => selectCell(checkInCell));
                         const fieldName = `${currentYear}_${currentMonth}-${day}_checkIn`;
                         checkInCell.textContent = data[name] && data[name][fieldName] ? data[name][fieldName] : '';
                         row.appendChild(checkInCell);
@@ -297,7 +248,6 @@
                         checkOutCell.dataset.date = `${currentMonth}/${day}`;
                         checkOutCell.dataset.year = currentYear;
                         checkOutCell.dataset.type = 'checkOut';
-                        checkOutCell.addEventListener('click', () => selectCell(checkOutCell));
                         const fieldNameOut = `${currentYear}_${currentMonth}-${day}_checkOut`;
                         checkOutCell.textContent = data[name] && data[name][fieldNameOut] ? data[name][fieldNameOut] : '';
                         row.appendChild(checkOutCell);
@@ -311,76 +261,6 @@
                 await updateTableBody();
             };
 
-            const selectCell = (cell) => {
-                if (cell.classList.contains('selected')) {
-                    cell.classList.remove('selected');
-                    selectedCells = selectedCells.filter(selectedCell => selectedCell !== cell);
-                } else {
-                    cell.classList.add('selected');
-                    selectedCells.push(cell);
-                }
-            };
-
-            const bulkUpdateCells = (value) => {
-                selectedCells.forEach(cell => {
-                    cell.textContent = value;
-                    saveData(cell.dataset.name, cell.dataset.year, cell.dataset.date, cell.dataset.type, value);
-                });
-                selectedCells = [];
-                attendanceTable.querySelectorAll('td').forEach(cell => cell.classList.remove('selected'));
-            };
-
-            const exportToExcel = async () => {
-                const wb = utils.book_new();
-                const wsData = [['日付']];
-
-                // 名前の分だけ出勤と退勤のカラムを作る
-                names.forEach(name => {
-                    wsData[0].push(name, '');
-                });
-
-                // 2行目に「出勤」と「退勤」を追加
-                const secondRow = [''];
-                names.forEach(() => {
-                    secondRow.push('出勤', '退勤');
-                });
-                wsData.push(secondRow);
-
-    let startMonth = currentMonth === 1 ? 12 : currentMonth - 1;
-    let endMonth = currentMonth;
-    let startYear = currentMonth === 1 ? currentYear - 1 : currentYear;
-    let endYear = currentYear;
-    const startDay = 21;
-    const endDay = 20;
-
-    const startDate = new Date(startYear, startMonth - 1, startDay);
-    const endDate = new Date(endYear, endMonth - 1, endDay);
-
-    // データをロード
-    const data = await loadDataFromFirestore();
-    
-    // 指定した期間の日付ごとに行を作成
-    for (let date = startDate; date <= endDate; date.setDate(date.getDate() + 1)) {
-        const day = date.getDate();
-        const month = date.getMonth() + 1;
-        const year = date.getFullYear();
-        const formattedDate = `${year}/${month}/${day}`;
-        const row = [formattedDate];
-
-        names.forEach(name => {
-            const fieldNameIn = `${year}_${month}-${day}_checkIn`;
-            const fieldNameOut = `${year}_${month}-${day}_checkOut`;
-            row.push(data[name] && data[name][fieldNameIn] ? data[name][fieldNameIn] : '');
-            row.push(data[name] && data[name][fieldNameOut] ? data[name][fieldNameOut] : '');
-        });
-
-        wsData.push(row);
-    }
-
-    const ws = utils.aoa_to_sheet(wsData);
-    utils.book_append_sheet(wb, ws, "出退勤");
-    writeFile(wb, "attendance.xlsx");
-};
             yearSelect.value = currentYear;
             monthLinks[currentMonth - 1].classList.add('active');
 
@@ -398,42 +278,6 @@
                     await updateTable();
                 });
             });
-
-            addNameButton.addEventListener('click', async () => {
-                const name = nameInput.value.trim();
-                if (name) {
-                    names.push(name);
-                    nameInput.value = '';
-                    await addNameToFirestore(name);
-                    await updateTable();
-                }
-            });
-
-            removeNameButton.addEventListener('click', async () => {
-                const name = nameInput.value.trim();
-                if (name && names.includes(name)) {
-                    names = names.filter(n => n !== name);
-                    nameInput.value = '';
-                    await removeNameFromFirestore(name);
-                    await updateTable();
-                }
-            });
-
-            bulkTimeButton.addEventListener('click', () => {
-                const now = new Date();
-                const time = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
-                bulkUpdateCells(time);
-            });
-
-            bulkAbsentButton.addEventListener('click', () => {
-                bulkUpdateCells('休');
-            });
-
-            bulkClearButton.addEventListener('click', () => {
-                bulkUpdateCells('');
-            });
-
-            exportButton.addEventListener('click', exportToExcel);
 
             await updateTable();
         });
